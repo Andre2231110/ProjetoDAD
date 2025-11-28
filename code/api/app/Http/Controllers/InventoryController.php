@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\ShopItem;
 use App\Models\UserInventory;
+use App\Models\User; // Necessário para buscar o ID
 
 class InventoryController extends Controller
 {
@@ -13,10 +14,20 @@ class InventoryController extends Controller
     {
         $email = $request->query('email');
 
-        // Faz um JOIN para saber o TIPO do item (deck ou avatar)
-        // SQL equivalente: SELECT s.resource_name, s.type FROM user_inventory i JOIN shop_items s ...
+        // 1. Encontrar o User para saber o ID
+        $user = User::where('email', $email)->first();
+
+        // Se o user não existir, retornamos apenas os defaults para não dar erro no Android
+        if (!$user) {
+            return response()->json([
+                'decks' => ['deck1_preview'],
+                'avatars' => ['default_avatar']
+            ]);
+        }
+
+        // 2. Faz um JOIN usando o USER_ID
         $inventoryItems = UserInventory::join('shop_items', 'user_inventory.item_resource_name', '=', 'shop_items.resource_name')
-            ->where('user_inventory.user_email', $email)
+            ->where('user_inventory.user_id', $user->id) // <--- AQUI ESTAVA O ERRO (era user_email)
             ->get(['shop_items.resource_name', 'shop_items.type']);
 
         // Separa em duas listas

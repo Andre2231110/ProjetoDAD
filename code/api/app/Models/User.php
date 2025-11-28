@@ -28,7 +28,9 @@ class User extends Authenticatable
         'photo_avatar_filename',
         'coins_balance',
         'capote_count',
-        'bandeiras_count',
+        'bandeira_count',
+        'current_deck',
+        'current_avatar'
     ];
 
     /**

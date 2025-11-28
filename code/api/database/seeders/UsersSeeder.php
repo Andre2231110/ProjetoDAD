@@ -32,6 +32,9 @@ class UsersSeeder extends Seeder
         ['type' => 'P', 'name' => 'Player D', 'email' => 'pd@mail.pt', 'gender' => 'M', 'softdelete' => true],
         ['type' => 'P', 'name' => 'Player E', 'email' => 'pe@mail.pt', 'gender' => 'F', 'softdelete' => false],
         ['type' => 'P', 'name' => 'Player F', 'email' => 'pf@mail.pt', 'gender' => 'M', 'softdelete' => true],
+
+        // O teu user de teste (para teres a certeza que existe na lista fixa)
+        ['type' => 'P', 'name' => 'Aluno Teste', 'email' => 'aluno@ipleiria.pt', 'gender' => 'M', 'softdelete' => false],
     ];
 
     public static $userTypes = [
@@ -43,16 +46,43 @@ class UsersSeeder extends Seeder
         $this->command->line("Creating Users.");
         self::$hashPasword = bcrypt('123');
 
-        //$this->faker = Factory::create('pt_PT');
         $this->faker = Factory::create(DatabaseSeeder::$seedLanguage);
 
         $this->cleanStorageFolder('photos_avatars');
 
         $this->addUsersToDatabase();
         $this->addPhotoFiles();
+
         DB::table('users')->where('type', 'A')->update(['nickname' => null]);
         self::$dbUsers = DB::table('users')->orderBy('id')->get();
-        $this->command->line("Users Created Successfully.");
+
+        $this->command->line("Users Created and Photos Copied Successfully.");
+
+        // ----------------------------------------------------------------------
+        // --- NOVO: Povoar o Inventário Inicial (Defaults) para TODOS ---
+        // ----------------------------------------------------------------------
+        // Como o Force Update do Aluno já foi feito dentro do loop (addUsersToDatabase),
+        // aqui só precisamos de garantir que toda a gente tem os itens básicos.
+
+        $this->command->line("Giving default items to all users (Inventory)...");
+
+        try {
+            // 1. Dar o Deck Inicial a todos
+            DB::statement("
+                INSERT OR IGNORE INTO user_inventory (user_id, item_resource_name)
+                SELECT id, 'deck1_preview' FROM users
+            ");
+
+            // 2. Dar o Avatar Inicial a todos
+            DB::statement("
+                INSERT OR IGNORE INTO user_inventory (user_id, item_resource_name)
+                SELECT id, 'default_avatar' FROM users
+            ");
+            $this->command->line("Default items distributed!");
+        } catch (\Exception $e) {
+            $this->command->warn("Could not populate inventory automatically: " . $e->getMessage());
+        }
+        // ----------------------------------------------------------------------
     }
 
     private function addUsersToDatabase()
@@ -76,20 +106,44 @@ class UsersSeeder extends Seeder
         }
 
         $createdDate = DatabaseSeeder::$startDate->copy()->addMinutes(mt_rand(20000, 100000));
+
         foreach ($usersAdded as $key => $user) {
             $usersAdded[$key]['password'] = self::$hashPasword;
             $createdDate = $createdDate->copy()->addMinutes(mt_rand(10, 60));
             $usersAdded[$key]['created_at'] = $createdDate;
             $usersAdded[$key]['email_verified_at'] = $createdDate->copy()->addMinutes(mt_rand(1, 9));
+
             if (random_int(1, 7) > 1) {
                 $usersAdded[$key]['updated_at'] = $createdDate->copy()->addMinutes(mt_rand(10, 10000));
             } else {
                 $usersAdded[$key]['updated_at'] = $createdDate;
             }
+
             $usersAdded[$key]['nickname'] = ($user['gender'] == 'M' ? 'Mickey' : 'Minnie') . ($key + 1) ;
             $usersAdded[$key]['blocked'] = false;
             $usersAdded[$key]['photo_avatar_filename'] = null;
-            $usersAdded[$key]['coins_balance'] = 0;
+
+            // ----------------------------------------------------------------------
+            // --- ALTERAÇÕES AQUI: LÓGICA CONDICIONAL DENTRO DO LOOP ---
+            // ----------------------------------------------------------------------
+
+            if ($user['email'] === 'aluno@ipleiria.pt') {
+                // User de teste: Rico e com stats fixos para validares a ordenação
+                $usersAdded[$key]['coins_balance'] = 70;
+                $usersAdded[$key]['capote_count'] = 10;
+                $usersAdded[$key]['bandeira_count'] = 5;
+            } else {
+                // Outros users: Valores aleatórios para dar variedade ao ranking
+                $usersAdded[$key]['coins_balance'] = mt_rand(50, 500);
+                $usersAdded[$key]['capote_count'] = mt_rand(0, 20);
+                $usersAdded[$key]['bandeira_count'] = mt_rand(0, 5);
+            }
+
+            // --- DEFAULTS ---
+            $usersAdded[$key]['current_deck'] = 'deck1_preview';
+            $usersAdded[$key]['current_avatar'] = 'default_avatar';
+            // ----------------------------------------------------------------------
+
             $usersAdded[$key]['deleted_at'] = null;
             if ($usersAdded[$key]['softdelete']) {
                 $usersAdded[$key]['deleted_at'] = $createdDate->copy()->addMinutes(mt_rand(10001, 100000));
@@ -115,8 +169,6 @@ class UsersSeeder extends Seeder
 
         $this->command->line("Total users created: " . DB::table('users')->count());
         self::$dbUsers = DB::table('users')->get();
-
-        print_r(self::$dbUsers);
     }
 
     private function addPhotoFiles()

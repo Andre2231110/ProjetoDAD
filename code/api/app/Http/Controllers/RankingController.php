@@ -16,8 +16,8 @@ class RankingController extends Controller
             ->get(['id', 'name', 'nickname', 'avatar']);
 
         // 2. TOP 10 COINS (Moedas)
-        $topCoins = User::select(['id', 'name', 'nickname', 'avatar', 'coins']) // ou 'coins_balance'
-            ->orderByDesc('coins')
+        $topCoins = User::select(['id', 'name', 'nickname', 'avatar', 'coins_balance']) // <--- Aqui
+            ->orderByDesc('coins_balance') // <--- E Aqui
             ->take(10)
             ->get();
 
