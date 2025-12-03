@@ -56,7 +56,11 @@ class InitialTransactionsSeeder extends Seeder
 
     private function updateAllPlayerBalances(): void
     {
-        DB::table('users')->where('type', 'P')->update(['coins_balance' => $this->valueOfInitialBonus]);
+        DB::table('users')
+        ->where('type', 'P')
+        ->where('email', '!=', 'aluno@ipleiria.pt')
+        ->where('email', '!=', 'pobre@ipleiria.pt')
+        ->update(['coins_balance' => $this->valueOfInitialBonus]);
         $this->command->info("Updated all players initial Balance");
     }
 }
