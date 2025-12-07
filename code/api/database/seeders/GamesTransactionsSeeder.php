@@ -258,7 +258,11 @@ class GamesTransactionsSeeder extends Seeder
     {
         $this->command->info("Update users balances...");
         foreach ($this->users as $user) {
-            DB::table('users')->where('id', $user->id)->update(['coins_balance' => $user->coins_balance]);
+            DB::table('users')
+            ->where('id', $user->id)
+            ->where('email', '!=', 'aluno@ipleiria.pt')
+            ->where('email', '!=', 'pobre@ipleiria.pt')
+            ->update(['coins_balance' => $user->coins_balance]);
         }
         $this->command->info("All users balances updated.");
     }

@@ -36,6 +36,7 @@ class UsersSeeder extends Seeder
         ['type' => 'P', 'name' => 'Bisca Bot', 'email' => 'bot@bisca.pt', 'gender' => 'M', 'softdelete' => false, 'nickname' => 'Bot Jamal'],
         // O teu user de teste (para teres a certeza que existe na lista fixa)
         ['type' => 'P', 'name' => 'Aluno Teste', 'email' => 'aluno@ipleiria.pt', 'gender' => 'M', 'softdelete' => false],
+        ['type'=> 'P', 'name' => 'Jogador Pobre', 'email'=> 'pobre@ipleiria.pt', 'gender' => 'M', 'softdelete'=> false],
     ];
 
     public static $userTypes = [
@@ -129,11 +130,16 @@ class UsersSeeder extends Seeder
             // ----------------------------------------------------------------------
 
             if ($user['email'] === 'aluno@ipleiria.pt') {
-                // User de teste: Rico e com stats fixos para validares a ordenação
+                // User de teste: moedas e stats fixos para validares a ordenação
                 $usersAdded[$key]['coins_balance'] = 70;
                 $usersAdded[$key]['capote_count'] = 10;
                 $usersAdded[$key]['bandeira_count'] = 5;
-            } else {
+            }else if ($user['email'] === 'pobre@ipleiria.pt') {
+                // User pobre: Sem moedas e sem conquistas
+                $usersAdded[$key]['coins_balance'] = 0;
+                $usersAdded[$key]['capote_count'] = 0;
+                $usersAdded[$key]['bandeira_count'] = 0;
+            }else {
                 // Outros users: Valores aleatórios para dar variedade ao ranking
                 $usersAdded[$key]['coins_balance'] = mt_rand(50, 500);
                 $usersAdded[$key]['capote_count'] = mt_rand(0, 20);
