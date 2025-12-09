@@ -25,7 +25,7 @@ class UsersSeeder extends Seeder
         ['type' => 'A', 'name' => 'Second Administrator', 'email' => 'a2@mail.pt', 'gender' => 'F', 'softdelete' => false],
         ['type' => 'A', 'name' => 'Third Administrator', 'email' => 'a3@mail.pt', 'gender' => 'M', 'softdelete' => false],
         ['type' => 'A', 'name' => 'Forth Administrator', 'email' => 'a4@mail.pt', 'gender' => 'M', 'softdelete' => true],
-
+        
         ['type' => 'P', 'name' => 'Player A', 'email' => 'pa@mail.pt', 'gender' => 'M', 'softdelete' => false],
         ['type' => 'P', 'name' => 'Player B', 'email' => 'pb@mail.pt', 'gender' => 'M', 'softdelete' => false],
         ['type' => 'P', 'name' => 'Player C', 'email' => 'pc@mail.pt', 'gender' => 'F', 'softdelete' => false],
@@ -37,6 +37,9 @@ class UsersSeeder extends Seeder
         // O teu user de teste (para teres a certeza que existe na lista fixa)
         ['type' => 'P', 'name' => 'Aluno Teste', 'email' => 'aluno@ipleiria.pt', 'gender' => 'M', 'softdelete' => false],
         ['type'=> 'P', 'name' => 'Jogador Pobre', 'email'=> 'pobre@ipleiria.pt', 'gender' => 'M', 'softdelete'=> false],
+
+        //bot jamals
+        ['type' => 'P', 'name' => 'Bot Jamal', 'email' => 'bot@mail.pt', 'gender' => 'M', 'softdelete' => false],
     ];
 
     public static $userTypes = [
