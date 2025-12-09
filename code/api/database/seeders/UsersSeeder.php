@@ -37,7 +37,7 @@ class UsersSeeder extends Seeder
         // O teu user de teste (para teres a certeza que existe na lista fixa)
         ['type' => 'P', 'name' => 'Aluno Teste', 'email' => 'aluno@ipleiria.pt', 'gender' => 'M', 'softdelete' => false],
         ['type'=> 'P', 'name' => 'Jogador Pobre', 'email'=> 'pobre@ipleiria.pt', 'gender' => 'M', 'softdelete'=> false],
-        ['type' => 'P', 'name' => 'Bot Rico', 'email' => 'rico@mail.pt', 'gender' => 'F', 'softdelete' => false],
+        ['type' => 'P', 'name' => 'Jogador Rico', 'email' => 'rico@mail.pt', 'gender' => 'F', 'softdelete' => false],
 
         //bot jamals
         ['type' => 'P', 'name' => 'Bot Jamal', 'email' => 'bot@mail.pt', 'gender' => 'M', 'softdelete' => false],
