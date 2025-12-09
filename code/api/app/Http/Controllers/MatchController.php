@@ -77,7 +77,8 @@ class MatchController extends Controller
                     'total_time' => $request->duration,
                     'player1_marks' => $p1Marks,
                     'player2_marks' => $p2Marks,
-                    'player1_points' => $request->score
+                    'player1_points' => $request->score,
+                    'coins_reward' => $coinsTotal
                 ]);
 
                 // B. Update User & Transactions (Se o humano ganhou)

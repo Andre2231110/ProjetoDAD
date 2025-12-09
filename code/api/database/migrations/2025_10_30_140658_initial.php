@@ -96,6 +96,9 @@ return new class extends Migration
             // After the match ended, the sum of points for player 2 (all games)
             $table->integer('player2_points')->nullable();
 
+            // --- Moedas ganhas na partida ---
+            $table->integer('coins_reward')->nullable()->default(0);
+
             // custom data
             $table->json('custom')->nullable();
 

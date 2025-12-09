@@ -28,6 +28,7 @@ class MatchGame extends Model
         'player2_marks',
         'player1_points',
         'player2_points',
+        'coins_reward',
         'custom'
     ];
 
