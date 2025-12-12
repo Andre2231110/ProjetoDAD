@@ -149,7 +149,10 @@ class UsersSeeder extends Seeder
                 $usersAdded[$key]['coins_balance'] = 9999;
                 $usersAdded[$key]['capote_count'] = 50;
                 $usersAdded[$key]['bandeira_count'] = 20;
-            }
+            }else if ($user['email'] === 'pa@mail.pt'){
+                $usersAdded[$key]['coins_balance'] = 10;
+                $usersAdded[$key]['capote_count'] = 13;
+                $usersAdded[$key]['bandeira_count'] = 6;}
             else {
                 // Outros users: Valores aleatórios para dar variedade ao ranking
                 $usersAdded[$key]['coins_balance'] = mt_rand(50, 500);
