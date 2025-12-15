@@ -39,6 +39,7 @@ class UsersSeeder extends Seeder
         ['type'=> 'P', 'name' => 'Jogador Pobre', 'email'=> 'pobre@ipleiria.pt', 'gender' => 'M', 'softdelete'=> false],
         ['type' => 'P', 'name' => 'Jogador Rico', 'email' => 'rico@mail.pt', 'gender' => 'F', 'softdelete' => false],
         ['type' => 'P', 'name' => 'Verificar Coins', 'email' => 'coins@ipleiria.pt', 'gender' => 'F', 'softdelete' => false],
+        ['type' => 'P', 'name' => 'Guest', 'email' => 'guest@mail.pt', 'gender' => 'F', 'softdelete' => false],
 
         //bot jamals
         ['type' => 'P', 'name' => 'Bot Jamal', 'email' => 'bot@mail.pt', 'gender' => 'M', 'softdelete' => false],
@@ -153,6 +154,11 @@ class UsersSeeder extends Seeder
                 $usersAdded[$key]['coins_balance'] = 10;
                 $usersAdded[$key]['capote_count'] = 13;
                 $usersAdded[$key]['bandeira_count'] = 6;}
+                else if ($user['email'] === 'coins@ipleiria.pt'){
+                $usersAdded[$key]['coins_balance'] = 110;
+                $usersAdded[$key]['capote_count'] = 25;
+                $usersAdded[$key]['bandeira_count'] = 10;
+            }
             else {
                 // Outros users: Valores aleatórios para dar variedade ao ranking
                 $usersAdded[$key]['coins_balance'] = mt_rand(50, 500);
