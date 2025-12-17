@@ -132,35 +132,39 @@ class UsersSeeder extends Seeder
             $usersAdded[$key]['photo_avatar_filename'] = null;
 
             // ----------------------------------------------------------------------
-            // --- ALTERAÇÕES AQUI: LÓGICA CONDICIONAL DENTRO DO LOOP ---
+            // ✨ CORREÇÃO AQUI: Limpar o email antes de comparar ✨
             // ----------------------------------------------------------------------
+            
+            // O trim() remove espaços invisíveis antes e depois do email
+            $emailLimpo = trim($user['email']);
 
-            if ($user['email'] === 'aluno@ipleiria.pt') {
-                // User de teste: moedas e stats fixos para validares a ordenação
+            if ($emailLimpo === 'aluno@ipleiria.pt') {
                 $usersAdded[$key]['coins_balance'] = 200;
                 $usersAdded[$key]['capote_count'] = 10;
                 $usersAdded[$key]['bandeira_count'] = 5;
-            }else if ($user['email'] === 'pobre@ipleiria.pt') {
-                // User pobre: Sem moedas e sem conquistas
+            }
+            else if ($emailLimpo === 'pobre@ipleiria.pt') {
                 $usersAdded[$key]['coins_balance'] = 0;
                 $usersAdded[$key]['capote_count'] = 0;
                 $usersAdded[$key]['bandeira_count'] = 0;
-            }else if ($user['email'] === 'rico@mail.pt'){
-                // User rico: Muitas moedas e conquistas
+            }
+            else if ($emailLimpo === 'rico@mail.pt'){
                 $usersAdded[$key]['coins_balance'] = 9999;
                 $usersAdded[$key]['capote_count'] = 50;
                 $usersAdded[$key]['bandeira_count'] = 20;
-            }else if ($user['email'] === 'pa@mail.pt'){
-                $usersAdded[$key]['coins_balance'] = 10;
+            }
+            else if ($emailLimpo === 'pa@mail.pt'){
+                $usersAdded[$key]['coins_balance'] = 20;
                 $usersAdded[$key]['capote_count'] = 13;
-                $usersAdded[$key]['bandeira_count'] = 6;}
-                else if ($user['email'] === 'coins@ipleiria.pt'){
+                $usersAdded[$key]['bandeira_count'] = 6;
+            }
+            else if ($emailLimpo === 'coins@ipleiria.pt'){
                 $usersAdded[$key]['coins_balance'] = 110;
                 $usersAdded[$key]['capote_count'] = 25;
                 $usersAdded[$key]['bandeira_count'] = 10;
             }
             else {
-                // Outros users: Valores aleatórios para dar variedade ao ranking
+                // Outros users: Valores aleatórios
                 $usersAdded[$key]['coins_balance'] = mt_rand(50, 500);
                 $usersAdded[$key]['capote_count'] = mt_rand(0, 20);
                 $usersAdded[$key]['bandeira_count'] = mt_rand(0, 5);

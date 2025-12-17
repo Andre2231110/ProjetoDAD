@@ -14,10 +14,6 @@ class DatabaseSeeder extends Seeder
 
     public static $startDate;
     public static $dbInsertBlockSize = 500;
-
-    // public static $seedType = "small";
-    //public static $seedType = "full";
-    //public static $seedLanguage = "pt_PT";
     public static $seedLanguage = "en_US";
 
     public function run(): void
@@ -29,12 +25,11 @@ class DatabaseSeeder extends Seeder
         self::$startDate = Carbon::now()->subMonths(14);
         self::$seedLanguage = $this->command->choice('What is the language for users\' names?', ['pt_PT', 'en_US'], 0);
 
+        // --- 1. LIMPEZA DE TABELAS ---
         if (DB::getDriverName() === 'sqlite') {
             DB::statement('PRAGMA foreign_keys = OFF');
         } else {
             DB::statement('SET foreign_key_checks=0');
-            // No permissions to change global setting. Change the session setting only
-            //DB::statement("SET @@global.time_zone = '+00:00'");
             DB::statement("SET time_zone = '+00:00'");
         }
 
@@ -44,38 +39,76 @@ class DatabaseSeeder extends Seeder
         DB::table('coin_purchases')->delete();
         DB::table('coin_transactions')->delete();
         DB::table('coin_transaction_types')->delete();
-
-        if (DB::getDriverName() === 'sqlite') {
-            DB::statement("DELETE FROM sqlite_sequence WHERE name = 'users'");
-            DB::statement("DELETE FROM sqlite_sequence WHERE name = 'matches'");
-            DB::statement("DELETE FROM sqlite_sequence WHERE name = 'games'");
-            DB::statement("DELETE FROM sqlite_sequence WHERE name = 'coin_purchases'");
-            DB::statement("DELETE FROM sqlite_sequence WHERE name = 'coin_transactions'");
-            DB::statement("DELETE FROM sqlite_sequence WHERE name = 'coin_transaction_types'");
-        } else {
-            DB::statement('ALTER TABLE users AUTO_INCREMENT = 0');
-            DB::statement('ALTER TABLE matches AUTO_INCREMENT = 0');
-            DB::statement('ALTER TABLE games AUTO_INCREMENT = 0');
-            DB::statement('ALTER TABLE coin_purchases AUTO_INCREMENT = 0');
-            DB::statement('ALTER TABLE coin_transactions AUTO_INCREMENT = 0');
-            DB::statement('ALTER TABLE coin_transaction_types AUTO_INCREMENT = 0');
+        
+        // Reset Auto Increments
+        $tables = ['users', 'matches', 'games', 'coin_purchases', 'coin_transactions', 'coin_transaction_types'];
+        foreach($tables as $table) {
+            if (DB::getDriverName() === 'sqlite') {
+                DB::statement("DELETE FROM sqlite_sequence WHERE name = '$table'");
+            } else {
+                DB::statement("ALTER TABLE $table AUTO_INCREMENT = 0");
+            }
         }
 
         $this->command->info("-----------------------------------------------");
 
+        // --- 2. CHAMADA DOS SEEDERS ---
         $this->call(TransactionTypesSeeder::class);
         $this->call(UsersSeeder::class);
         $this->call(InitialTransactionsSeeder::class);
         $this->call(GamesSeeder::class);
         $this->call(GamesTransactionsSeeder::class);
 
+        // --------------------------------------------------------------------
+        // ✨ CORREÇÃO FINAL (Versão Compatível com TransactionTypesSeeder) ✨
+        // --------------------------------------------------------------------
+        $this->command->info('-----------------------------------------------');
+        $this->command->info('Fixing Test Users Values (Cleaning History & Forcing Balance)...');
+
+        $usersToFix = [
+            'coins@ipleiria.pt' => ['coins' => 110, 'capote' => 25, 'bandeira' => 10],
+            'pa@mail.pt'        => ['coins' => 10,  'capote' => 13, 'bandeira' => 6],
+            'aluno@ipleiria.pt' => ['coins' => 200, 'capote' => 10, 'bandeira' => 5],
+            'rico@mail.pt'      => ['coins' => 9999,'capote' => 50, 'bandeira' => 20],
+            'pobre@ipleiria.pt' => ['coins' => 0,   'capote' => 0,  'bandeira' => 0],
+        ];
+
+        foreach ($usersToFix as $email => $data) {
+            $user = \App\Models\User::where('email', $email)->first();
+            
+            if ($user) {
+                // 1. LIMPEZA: Apagar histórico "sujo"
+                DB::table('coin_transactions')->where('user_id', $user->id)->delete();
+                DB::table('coin_purchases')->where('user_id', $user->id)->delete();
+
+                // 2. JUSTIFICATIVA: Inserir transação de ajuste
+                if ($data['coins'] > 0) {
+                    DB::table('coin_transactions')->insert([
+                        'user_id' => $user->id,
+                        // AQUI ESTÁ A CORREÇÃO: Usar 'coin_transaction_type_id' e o valor 1 (Bonus)
+                        'coin_transaction_type_id' => 1, 
+                        'coins' => $data['coins'],
+                        'custom' => 'Force Fix Seeder (Matilde)',
+                        'transaction_datetime' => now(), // Nome da coluna depende da tua migração (created_at ou transaction_datetime)
+                    ]);
+                }
+
+                // 3. ATUALIZAÇÃO: Forçar saldo na tabela users
+                $user->update([
+                    'coins_balance' => $data['coins'],
+                    'capote_count'  => $data['capote'],
+                    'bandeira_count'=> $data['bandeira']
+                ]);
+            }
+        }
+
+        $this->command->info('Test Users Values Fixed Successfully! ✨');
+
         if (DB::getDriverName() === 'sqlite') {
             DB::statement('PRAGMA foreign_keys = ON');
         } else {
             DB::statement('SET foreign_key_checks=1');
         }
-
-
 
         $this->command->info("-----------------------------------------------");
         $this->command->info("END of database seeder");
