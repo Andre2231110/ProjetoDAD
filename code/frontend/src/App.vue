@@ -3,6 +3,14 @@
   <nav class="max-w-full p-5 flex flex-row justify-between align-middle">
     <div class="align-middle text-xl">
       <RouterLink to="/"> {{ pageTitle }} </RouterLink>
+
+      <RouterLink 
+      v-if="authStore.isLoggedIn" 
+      to="/lobby" 
+      class="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors uppercase tracking-widest"
+    >
+      🃏 Jogar (Lobby)
+    </RouterLink>
       <span class="text-xs" v-if="authStore.currentUser">&nbsp;&nbsp;&nbsp;
         ({{ authStore.currentUser?.name }})
       </span>

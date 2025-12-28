@@ -64,15 +64,13 @@ const formData = ref({
 
 
 const handleSubmit = async () => {
-
     toast.promise(authStore.login(formData.value), {
         loading: 'Calling API',
         success: (data) => {
             return `Login Sucessfull - ${data?.name}`
         },
-        error: (data) => `[API] Error saving game - ${data?.response?.data?.message}`,
+        error: (data) => `[API] Error logging in - ${data?.response?.data?.message}`,
     })
-
 
     router.push('/')
 }

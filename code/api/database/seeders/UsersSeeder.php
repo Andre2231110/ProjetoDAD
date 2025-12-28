@@ -139,7 +139,7 @@ class UsersSeeder extends Seeder
             $emailLimpo = trim($user['email']);
 
             if ($emailLimpo === 'aluno@ipleiria.pt') {
-                $usersAdded[$key]['coins_balance'] = 200;
+                $usersAdded[$key]['coins_balance'] = 2000;
                 $usersAdded[$key]['capote_count'] = 10;
                 $usersAdded[$key]['bandeira_count'] = 5;
             }

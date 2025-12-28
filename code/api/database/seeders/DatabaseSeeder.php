@@ -67,8 +67,8 @@ class DatabaseSeeder extends Seeder
 
         $usersToFix = [
             'coins@ipleiria.pt' => ['coins' => 110, 'capote' => 25, 'bandeira' => 10],
-            'pa@mail.pt'        => ['coins' => 10,  'capote' => 13, 'bandeira' => 6],
-            'aluno@ipleiria.pt' => ['coins' => 200, 'capote' => 10, 'bandeira' => 5],
+            'pa@mail.pt'        => ['coins' => 20,  'capote' => 13, 'bandeira' => 6],
+            'aluno@ipleiria.pt' => ['coins' => 2000, 'capote' => 10, 'bandeira' => 5],
             'rico@mail.pt'      => ['coins' => 9999,'capote' => 50, 'bandeira' => 20],
             'pobre@ipleiria.pt' => ['coins' => 0,   'capote' => 0,  'bandeira' => 0],
         ];
