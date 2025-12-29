@@ -21,6 +21,7 @@ const router = createRouter({
     {
       path: '/lobby',
       component: LobbyPage,
+      meta: { requiresAuth: true }
     },
     {
       path: '/game',
@@ -31,7 +32,7 @@ const router = createRouter({
       path: '/history',
       name: 'history',
       component: () => import('@/pages/history/HistoryPage.vue'),
-      meta: { requiresAuth: true } 
+      meta: { requiresAuth: true }
     },
     {
       path: '/testing',
@@ -49,26 +50,15 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach((to) => {
   const authStore = useAuthStore()
 
-  // 1. Se o Pinia está vazio mas achamos que o user pode estar logado (página refrescada)
-  if (!authStore.isLoggedIn) {
-    try {
-      // Tentamos recuperar o utilizador da API antes de carregar a rota
-      await authStore.getUser()
-    } catch (error) {
-      // Não estava logado no servidor, não fazemos nada
-    }
+  if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+    return '/login'
   }
 
-  // 2. Proteção de rotas: Se a rota for o Lobby e o user continuar a não estar logado
-  if (to.path === '/lobby' && !authStore.isLoggedIn) {
-    next('/login') // Força o login
-  } else if (to.path === '/login' && authStore.isLoggedIn) {
-    next('/lobby') // Se já está logado e vai para o login, manda para o lobby
-  } else {
-    next() // Deixa passar
+  if (to.path === '/login' && authStore.isLoggedIn) {
+    return '/lobby'
   }
 })
 

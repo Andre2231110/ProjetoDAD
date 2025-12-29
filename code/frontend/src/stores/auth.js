@@ -16,9 +16,9 @@ export const useAuthStore = defineStore('auth', () => {
   })
 
   const login = async (credentials) => {
-    await apiStore.postLogin(credentials)
+    const response = await apiStore.postLogin(credentials)
+    localStorage.setItem('token', apiStore.token) // guarda o token
     await getUser()
-    socketStore.emitJoin(currentUser.value)
     return currentUser.value
   }
 
@@ -27,16 +27,17 @@ export const useAuthStore = defineStore('auth', () => {
     currentUser.value = undefined
   }
 
- const getUser = async () => {
-  try {
-    const response = await apiStore.getAuthUser()
-    currentUser.value = response.data
-    return response.data
-  } catch (error) {
-    currentUser.value = undefined
-    throw error // Importante para o Router saber que falhou
+  const getUser = async () => {
+    if (!apiStore.token) return
+
+    try {
+      const response = await apiStore.getAuthUser()
+      currentUser.value = response.data
+    } catch (e) {
+      console.warn('Failed to fetch user, keeping token')
+      currentUser.value = undefined
+    }
   }
-}
 
   return {
     currentUser,

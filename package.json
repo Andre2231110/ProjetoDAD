@@ -1,5 +1,7 @@
 {
-  "dependencies": {},
+  "dependencies": {
+    "pinia-plugin-persistedstate": "^4.7.1"
+  },
   "devDependencies": {
     "vitepress": "^1.6.4"
   },

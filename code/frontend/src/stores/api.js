@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import { inject, ref } from 'vue'
+import { ref } from 'vue'
+
+const api = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+})
 
 export const useAPIStore = defineStore('api', () => {
-  const API_BASE_URL = inject('apiBaseURL')
-
   const gameQueryParameters = ref({
     page: 1,
     filters: {
@@ -15,42 +17,37 @@ export const useAPIStore = defineStore('api', () => {
     },
   })
 
-  // 1. Tentar recuperar o token do localStorage logo no arranque
   const token = ref(localStorage.getItem('token'))
 
-  // 2. Se houver um token guardado, configurar o Axios imediatamente
+  // aplicar token logo no arranque
   if (token.value) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+    api.defaults.headers.common.Authorization = `Bearer ${token.value}`
   }
 
   // AUTH
   const postLogin = async (credentials) => {
-    const response = await axios.post(`${API_BASE_URL}/login`, credentials)
+    const response = await api.post('/login', credentials)
+
     token.value = response.data.token
-    
-    // Guardar no localStorage para sobreviver ao F5
     localStorage.setItem('token', token.value)
-    
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
-    return response // Importante retornar para o authStore
+
+    api.defaults.headers.common.Authorization = `Bearer ${token.value}`
+
+    return response
   }
 
   const postLogout = async () => {
-    await axios.post(`${API_BASE_URL}/logout`)
-    token.value = undefined
-    
-    // Limpar do localStorage
+    await api.post('/logout')
+
+    token.value = null
     localStorage.removeItem('token')
-    
-    delete axios.defaults.headers.common['Authorization']
+    delete api.defaults.headers.common.Authorization
   }
 
-  // Resto das funções (getAuthUser, getGames...) mantém-se igual
   const getAuthUser = () => {
-    return axios.get(`${API_BASE_URL}/users/me`)
+    return api.get('/users/me')
   }
 
-  //Games
   const getGames = (resetPagination = false) => {
     if (resetPagination) {
       gameQueryParameters.value.page = 1
@@ -67,7 +64,8 @@ export const useAPIStore = defineStore('api', () => {
       sort_by: gameQueryParameters.value.filters.sort_by,
       sort_direction: gameQueryParameters.value.filters.sort_direction,
     }).toString()
-    return axios.get(`${API_BASE_URL}/games?${queryParams}`)
+
+    return api.get(`/games?${queryParams}`)
   }
 
   return {

@@ -160,6 +160,10 @@ return new class extends Migration
             $table->json('custom')->nullable();
         });
 
+
+        //--------- AQUI MATILDE ---------
+
+        /*
         Schema::create('coin_transaction_types', function (Blueprint $table) {
             $table->id();
             $table->string('name', 40);
@@ -182,6 +186,7 @@ return new class extends Migration
             ['name' => 'Game payout', 'type' => 'C'],      // id = 5
             ['name' => 'Match payout', 'type' => 'C'],     // id = 6
         ]);
+
 
         Schema::create('coin_transactions', function (Blueprint $table) {
             $table->id();
@@ -243,7 +248,7 @@ return new class extends Migration
 
             // custom data
             $table->json('custom')->nullable();
-        });
+        });*/
 
         // --- NOVO: TABELAS DA LOJA ---
 
