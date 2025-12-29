@@ -11,14 +11,17 @@ use Illuminate\Support\Facades\Log;
 
 class GameController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
+        $user = $request->user();
         $query = Game::query()->with(['winner']);
 
-
+        if ($user->type !== 'A') {
+            $query->where(function ($q) use ($user) {
+                $q->where('player1_user_id', $user->id)
+                  ->orWhere('player2_user_id', $user->id);
+            });
+        }
 
         if ($request->has('type') && in_array($request->type, ['3', '9'])) {
             $query->where('type', $request->type);
@@ -28,28 +31,14 @@ class GameController extends Controller
             $query->where('status', $request->status);
         }
 
-
-
-        // Sorting
         $sortField = $request->input('sort_by', 'began_at');
         $sortDirection = $request->input('sort_direction', 'desc');
-
-        $allowedSortFields = [
-            'began_at',
-            'ended_at',
-            'total_time',
-            'type',
-            'status'
-        ];
+        $allowedSortFields = ['began_at', 'ended_at', 'total_time', 'type', 'status'];
 
         if (in_array($sortField, $allowedSortFields)) {
             $query->orderBy($sortField, $sortDirection === 'asc' ? 'asc' : 'desc');
         }
 
-
-
-
-        // Pagination
         $perPage = $request->input('per_page', 15);
         $games = $query->paginate($perPage);
 
@@ -67,53 +56,41 @@ class GameController extends Controller
     public function userGames(Request $request)
     {
         $userId = $request->user()->id;
-
         $games = Game::with(['winner'])
             ->where(function ($q) use ($userId) {
                 $q->where('player1_user_id', $userId)
-                    ->orWhere('player2_user_id', $userId);
+                  ->orWhere('player2_user_id', $userId);
             })
             ->orderBy('began_at', 'desc')
             ->get();
 
-        return response()->json([
-            'data' => $games
-        ]);
+        return response()->json(['data' => $games]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // 1. Validar os dados que vêm do Android
         $request->validate([
             'email'          => 'required|email',
             'player1_points' => 'required|integer',
             'player2_points' => 'required|integer',
             'duration'       => 'required|integer',
             'match_id'       => 'nullable|exists:matches,id',
-            'moves'          => 'nullable|array' // <--- NOVA VALIDAÇÃO PARA AS VAZAS
+            'moves'          => 'nullable|array'
         ]);
 
-        // 2. Identificar o Utilizador e o Bot
         $user = User::where('email', $request->email)->first();
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
 
-        // Verifica se o bot existe (podes usar o email que tens na BD)
-        $botUser = User::where('email', "bot@mail.pt")->first(); // ou bot@mail.pt conforme tenhas
+        $botUser = User::where('email', "bot@mail.pt")->first();
         if (!$botUser) {
-            // Fallback: Tenta encontrar pelo ID ou cria (opcional, mas evita erros 500)
-             return response()->json(['error' => 'Bot configuration missing'], 500);
+            return response()->json(['error' => 'Bot configuration missing'], 500);
         }
         $botId = $botUser->id;
 
-        // 3. Calcular Vencedor e Perdedor
         $p1Score = $request->player1_points;
         $p2Score = $request->player2_points;
-
         $winnerId = null;
         $loserId = null;
         $isDraw = 0;
@@ -128,13 +105,9 @@ class GameController extends Controller
             $isDraw = 1;
         }
 
-        // 4. Guardar Jogo e Vazas (Transação)
         try {
-            // Usamos DB::transaction para garantir que grava Jogo + Vazas ou nada
             $gameId = DB::transaction(function () use ($request, $user, $botId, $winnerId, $loserId, $isDraw, $p1Score, $p2Score) {
 
-                // A. Criar o Registo na Tabela GAMES
-                // Nota: Game::create retorna o objeto, guardamos na variável $game
                 $game = Game::create([
                     'type'            => '9',
                     'status'          => 'Ended',
@@ -151,30 +124,41 @@ class GameController extends Controller
                     'began_at'        => now()->subSeconds($request->duration)
                 ]);
 
-                // B. Salvar as VAZAS na tabela GAME_MOVES
+                // CORREÇÃO DO ERRO: Definir o tipo de transação para o histórico de moedas
+                $payoutType = DB::table('coin_transaction_types')
+                                ->where('name', 'Game payout')
+                                ->first();
+
+                if (!$isDraw && $payoutType) {
+                    DB::table('coin_transactions')->insert([
+                        'user_id' => $winnerId,
+                        'game_id' => $game->id,
+                        'coins' => ($p1Score == 120 || $p2Score == 120) ? 6 : ($p1Score >= 91 ? 4 : 3),
+                        'coin_transaction_type_id' => $payoutType->id, // Agora a variável existe!
+                        'transaction_datetime' => now(),
+                    ]);
+                }
+
                 if ($request->has('moves') && is_array($request->moves)) {
                     $movesData = [];
-
                     foreach ($request->moves as $move) {
                         $movesData[] = [
-                            'game_id'       => $game->id,        // <--- Liga ao ID do jogo criado em cima
-                            'round_number'  => $move['round'],   // Vem do Android
-                            'player_card'   => $move['p_card'],  // ex: "ac"
-                            'bot_card'      => $move['b_card'],  // ex: "7o"
-                            'winner'        => $move['winner'],  // "player" ou "bot"
+                            'game_id'       => $game->id,
+                            'round_number'  => $move['round'],
+                            'player_card'   => $move['p_card'],
+                            'bot_card'      => $move['b_card'],
+                            'winner'        => $move['winner'],
                             'points_earned' => $move['points'],
                             'created_at'    => now(),
                             'updated_at'    => now()
                         ];
                     }
-
-                    // Inserir todas as vazas de uma vez
                     if (count($movesData) > 0) {
                         DB::table('game_moves')->insert($movesData);
                     }
                 }
 
-                return $game->id; // Retorna o ID para usar na resposta
+                return $game->id;
             });
 
             return response()->json([
@@ -183,58 +167,31 @@ class GameController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("SaveGame Error: " . $e->getMessage());
+            Log::error("SaveGame Error: " . $e->getMessage());
             return response()->json(['error' => 'Erro ao guardar jogo: ' . $e->getMessage()], 500);
         }
     }
 
-    /**
-     * Display the specified resource.
-     * GET /api/games/{id}
-     */
     public function show($id)
     {
         try {
-            // 1. Buscar o Jogo
             $game = Game::find($id);
-
             if (!$game) {
                 return response()->json(['message' => 'Game not found'], 404);
             }
 
-            // 2. Buscar as Vazas (Moves) associadas
-            // Certifica-te que tens "use App\Models\GameMove;" no topo do ficheiro
             $moves = GameMove::where('game_id', $id)
                         ->orderBy('round_number', 'asc')
                         ->get();
 
-            // 3. Juntar tudo na mesma resposta
-            // Converte o jogo em array e adiciona os moves
             $responseData = $game->toArray();
             $responseData['moves'] = $moves;
 
             return response()->json($responseData, 200);
 
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Erro ao mostrar jogo $id: " . $e->getMessage());
+            Log::error("Erro ao mostrar jogo $id: " . $e->getMessage());
             return response()->json(['error' => 'Server error'], 500);
         }
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Game $game)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Game $game)
-    {
-        //
-    }
-    
 }

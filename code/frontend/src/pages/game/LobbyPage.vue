@@ -267,7 +267,7 @@
                             </Button>
                         </CardHeader>
                         <CardContent class="p-0">
-                            <div v-if="gameStore.availableGames.length === 0"
+                            <div v-if="!gameStore.availableGames?.length"
                                 class="flex flex-col items-center justify-center py-20 text-slate-300">
                                 <span class="text-6xl mb-4 text-slate-200">🎴</span>
                                 <p class="font-bold">Nenhuma mesa aberta de momento...</p>

@@ -28,6 +28,12 @@ const router = createRouter({
       component: GamePage,
     },
     {
+      path: '/history',
+      name: 'history',
+      component: () => import('@/pages/history/HistoryPage.vue'),
+      meta: { requiresAuth: true } 
+    },
+    {
       path: '/testing',
       children: [
         {
