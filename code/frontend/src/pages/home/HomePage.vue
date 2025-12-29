@@ -12,7 +12,7 @@
         <div v-for="(simbolo, index) in ['♠️', '♥️', '♣️', '♦️']" :key="index"
           class="w-20 h-28 bg-white rounded-lg shadow-lg flex items-center justify-center text-3xl font-bold text-indigo-600 transform transition-transform duration-300 hover:-translate-y-3 hover:rotate-3 cursor-pointer">
           {{ simbolo }}
-        </div>
+        </div>  
       </div>
 
       <!-- Botões de ação -->

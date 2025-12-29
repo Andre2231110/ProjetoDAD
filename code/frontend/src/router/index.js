@@ -3,6 +3,7 @@ import LobbyPage from '@/pages/game/LobbyPage.vue'
 import LoginPage from '@/pages/login/LoginPage.vue'
 import LaravelPage from '@/pages/testing/LaravelPage.vue'
 import WebsocketsPage from '@/pages/testing/WebsocketsPage.vue'
+import ProfilePage from '@/pages/profile/ProfilePage.vue'
 import GamePage from '@/pages/game/GamePage.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -21,7 +22,7 @@ const router = createRouter({
     {
       path: '/lobby',
       component: LobbyPage,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       path: '/game',
@@ -32,7 +33,18 @@ const router = createRouter({
       path: '/history',
       name: 'history',
       component: () => import('@/pages/history/HistoryPage.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/register',
+      name: 'RegisterPage',
+      component: () => import('@/pages/register/RegisterPage.vue'),
+    },
+    {
+      path: '/profile',
+      name: 'Profile',
+      component: ProfilePage,
+      meta: { requiresAuth: true },
     },
     {
       path: '/testing',

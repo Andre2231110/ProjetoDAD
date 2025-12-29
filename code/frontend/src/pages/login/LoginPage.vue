@@ -16,19 +16,30 @@
             <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
               Email address
             </label>
-            <Input id="email" v-model="formData.email" type="email" autocomplete="email" required
-              placeholder="you@example.com" />
+            <Input
+              id="email"
+              v-model="formData.email"
+              type="email"
+              autocomplete="email"
+              required
+              placeholder="you@example.com"
+            />
           </div>
 
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
-            <Input id="password" v-model="formData.password" type="password" autocomplete="current-password" required
-              placeholder="••••••••" />
+            <Input
+              id="password"
+              v-model="formData.password"
+              type="password"
+              autocomplete="current-password"
+              required
+              placeholder="••••••••"
+            />
           </div>
         </div>
-
 
         <div>
           <Button type="submit" class="w-full"> Sign in </Button>
@@ -36,9 +47,9 @@
 
         <div class="text-center text-sm">
           <span class="text-gray-600">Don't have an account? </span>
-          <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
+          <router-link to="/register" class="font-medium text-blue-600 hover:text-blue-500">
             Sign up
-          </a>
+          </router-link>
         </div>
       </form>
     </div>
@@ -58,10 +69,9 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const formData = ref({
-  email: 'pa@mail.pt',
-  password: '123'
+  email: '',
+  password: '',
 })
-
 
 const handleSubmit = async () => {
   try {

@@ -3,9 +3,10 @@
     <div v-if="authStore.isLoggedIn" class="flex items-center gap-2">
       <!-- Avatar -->
       <img
-        :src="authStore.currentUser?.profile_image || defaultAvatar"
+        v-if="authStore.currentUser"
+        :src="avatarPreview || `/storage/${authStore.currentUser.current_avatar}` || defaultAvatar"
         alt="Avatar"
-        class="w-10 h-10 rounded-full border-2 border-indigo-600"
+        class="w-20 h-20 rounded-full border-2 border-indigo-600 object-cover"
       />
 
       <!-- Nome do utilizador -->

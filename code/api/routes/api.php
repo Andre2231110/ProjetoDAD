@@ -7,12 +7,19 @@ use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\MatchController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+
+Route::middleware('auth:sanctum')->delete('/profile/delete', [ProfileController::class, 'destroy']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/profile/update', [ProfileController::class, 'update']);
+});
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/me', function (Request $request) {

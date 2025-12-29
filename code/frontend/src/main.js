@@ -18,7 +18,7 @@ const app = createApp(App)
 app.provide('socket', io(wsConnection))
 app.provide('serverBaseURL', `http://${apiDomain}`)
 app.provide('apiBaseURL', `http://${apiDomain}/api`)
-
+app.provide('BaseURL', `http://${apiDomain}`)
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 
