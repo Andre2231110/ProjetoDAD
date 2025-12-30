@@ -37,7 +37,7 @@ export const useSocketStore = defineStore('socket', () => {
   const handleConnection = () => {
     if (!socket) return
 
-    socket.on('connect', () => {
+    socket.on('login', () => {
       console.log(`[Socket] Connected -- ${socket.id}`)
       
       // Se já estiver logado na App, faz login no Socket automaticamente
