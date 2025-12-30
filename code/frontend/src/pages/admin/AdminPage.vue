@@ -1,187 +1,169 @@
 <template>
-  <div
-    class="container mx-auto p-6 flex flex-col min-h-[90vh] items-center justify-start space-y-10"
-  >
+  <div class="max-w-6xl mx-auto py-10">
+    <h2 class="text-4xl font-extrabold text-blue-700 mb-6 text-center">
+      Administração de Usuários
+    </h2>
+
     <!-- Criar Admin -->
-    <div
-      class="w-full max-w-[80%] bg-white rounded-3xl shadow-xl border border-slate-100 p-10 space-y-8"
-    >
-      <div class="text-center md:text-left">
-        <h2 class="text-4xl font-black text-indigo-900 tracking-tight uppercase">Criar Admin</h2>
-        <p class="mt-2 text-sm font-medium text-slate-400">
-          Crie uma nova conta de administrador para gerir a aplicação.
-        </p>
-      </div>
+    <div class="bg-white border border-blue-200 rounded-xl shadow-lg p-8 mb-12">
+      <h3 class="text-2xl font-semibold text-blue-700 mb-6">
+        Criar Novo Administrador
+      </h3>
 
-      <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div class="space-y-1">
-            <label class="block text-base font-bold text-indigo-600 ml-1">Nome Completo</label>
-            <input
-              v-model="formData.name"
-              type="text"
-              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
-              required
-              placeholder="Nome completo"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="block text-base font-bold text-indigo-600 ml-1">Nickname</label>
-            <input
-              v-model="formData.nickname"
-              type="text"
-              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
-              required
-              placeholder="Nickname"
-            />
-          </div>
-          <div class="md:col-span-2 space-y-1">
-            <label class="block text-base font-bold text-indigo-600 ml-1">Email</label>
-            <input
-              v-model="formData.email"
-              type="email"
-              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
-              required
-              placeholder="email@dominio.com"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="block text-base font-bold text-indigo-600 ml-1">Palavra-passe</label>
-            <input
-              v-model="formData.password"
-              type="password"
-              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
-              required
-              placeholder="••••••••"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="block text-base font-bold text-indigo-600 ml-1"
-              >Confirmar Palavra-passe</label
-            >
-            <input
-              v-model="formData.password_confirmation"
-              type="password"
-              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
-              required
-              placeholder="••••••••"
-            />
-          </div>
-          <div class="md:col-span-2 space-y-1">
-            <label class="block text-base font-bold text-indigo-600 ml-1"
-              >Foto de Perfil (Opcional)</label
-            >
-            <input
-              type="file"
-              accept="image/*"
-              @change="handleFileChange"
-              class="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-black file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 h-auto p-2"
-            />
-          </div>
+      <form @submit.prevent="handleSubmit" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input v-model="formData.name" type="text" placeholder="Nome completo"
+                 class="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+
+          <input v-model="formData.nickname" type="text" placeholder="Nickname"
+                 class="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+
+          <input v-model="formData.email" type="email" placeholder="Email"
+                 class="border rounded-lg p-3 md:col-span-2 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+
+          <input v-model="formData.password" type="password" placeholder="Palavra-passe"
+                 class="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+
+          <input v-model="formData.password_confirmation" type="password" placeholder="Confirmar Palavra-passe"
+                 class="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+
+          <input type="file" accept="image/*" @change="handleFileChange"
+                 class="border rounded-lg p-3 md:col-span-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
         </div>
 
-        <div class="pt-6">
-          <button
-            type="submit"
-            class="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg shadow-lg shadow-indigo-100 rounded-xl transition-all active:scale-95 uppercase tracking-widest cursor-pointer"
-          >
-            Criar Admin
-          </button>
-        </div>
+        <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 transition text-white rounded-lg px-8 py-3 mt-4">
+          Criar Admin
+        </button>
 
-        <p
-          v-if="message"
-          :class="messageType === 'success' ? 'text-green-600 mt-2' : 'text-red-600 mt-2'"
-        >
+        <p v-if="message"
+           :class="messageType === 'success' ? 'text-green-600' : 'text-red-600'"
+           class="mt-3">
           {{ message }}
         </p>
       </form>
     </div>
 
-    <!-- Lista de Usuários -->
-    <div
-      class="w-full max-w-[80%] bg-white rounded-3xl shadow-xl border border-slate-100 p-10 space-y-4"
-    >
-      <h2 class="text-3xl font-black text-indigo-900 tracking-tight uppercase">Usuários</h2>
+    <!-- Filtros -->
+    <div class="flex gap-4 mb-6">
+      <select v-model="selectedType" @change="fetchUsers(true)"
+              class="border rounded-lg p-2 focus:ring-2 focus:ring-blue-400">
+        <option value="">Todos</option>
+        <option value="A">Admins</option>
+        <option value="P">Players</option>
+      </select>
 
-      <p v-if="usersStore.error" class="text-red-500">{{ usersStore.error }}</p>
-      <div v-if="usersStore.loading" class="my-4">Carregando usuários...</div>
+      <select v-model="selectedBlocked" @change="fetchUsers(true)"
+              class="border rounded-lg p-2 focus:ring-2 focus:ring-blue-400">
+        <option value="">Todos</option>
+        <option value="0">Ativos</option>
+        <option value="1">Bloqueados</option>
+      </select>
+    </div>
 
-      <table v-else class="w-full table-auto border-collapse border border-gray-200 mt-4">
+    <!-- Tabela -->
+    <div class="rounded-xl border border-blue-200 overflow-hidden shadow-lg">
+      <table class="w-full border-collapse">
         <thead>
-          <tr class="bg-gray-100">
-            <th class="border px-4 py-2">Avatar</th>
+          <tr class="bg-blue-100 text-blue-800">
+            <th class="border px-4 py-2">ID</th>
             <th class="border px-4 py-2">Nickname</th>
             <th class="border px-4 py-2">Nome</th>
             <th class="border px-4 py-2">Email</th>
             <th class="border px-4 py-2">Tipo</th>
+            <th class="border px-4 py-2">Estado</th>
+            <th class="border px-4 py-2">Ações</th>
           </tr>
         </thead>
+
         <tbody>
-          <tr v-for="user in usersStore.users" :key="user.id" class="hover:bg-gray-50">
-            <td class="border px-4 py-2">
-              <img
-                v-if="user.current_avatar"
-                :src="storageUrl(user.current_avatar)"
-                alt="Avatar"
-                class="w-10 h-10 rounded-full object-cover"
-              />
-            </td>
-            <td class="border px-4 py-2">{{ user.nickname }}</td>
+          <tr v-for="user in users" :key="user.id"
+              class="hover:bg-blue-50 transition">
+            <td class="border px-4 py-2">{{ user.id }}</td>
+            <td class="border px-4 py-2 font-semibold">{{ user.nickname }}</td>
             <td class="border px-4 py-2">{{ user.name }}</td>
             <td class="border px-4 py-2">{{ user.email }}</td>
             <td class="border px-4 py-2">{{ user.type }}</td>
+
+            <td class="border px-4 py-2">
+              <span
+                :class="user.blocked ? 'bg-red-200 text-red-700' : 'bg-green-200 text-green-700'"
+                class="px-3 py-1 rounded-full text-sm font-semibold">
+                {{ user.blocked ? 'Bloqueado' : 'Ativo' }}
+              </span>
+            </td>
+
+            <td class="border px-4 py-2 flex gap-3 justify-center">
+              
+              <!-- Toggle Block -->
+              <button
+                @click="toggleBlocked(user)"
+                :class="user.blocked ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'"
+                class="text-white px-4 py-1 rounded-lg transition">
+                {{ user.blocked ? 'Desbloquear' : 'Bloquear' }}
+              </button>
+
+              <!-- Delete -->
+              <button
+                @click="deleteUser(user)"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg transition">
+                Apagar
+              </button>
+            </td>
+          </tr>
+
+          <tr v-if="!users.length">
+            <td colspan="7" class="text-center py-5 text-gray-500">
+              Nenhum usuário encontrado
+            </td>
           </tr>
         </tbody>
       </table>
-
-      <!-- Paginação -->
-      <div class="flex justify-between mt-4">
-        <button
-          class="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          :disabled="!usersStore.meta?.current_page || usersStore.meta?.current_page <= 1"
-          @click="fetchPage((usersStore.meta?.current_page || 1) - 1)"
-        >
-          Anterior
-        </button>
-
-        <button
-          class="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          :disabled="
-            !usersStore.meta?.current_page ||
-            usersStore.meta?.current_page >= (usersStore.meta?.last_page || 1)
-          "
-          @click="fetchPage((usersStore.meta?.current_page || 1) + 1)"
-        >
-          Próxima
-        </button>
-      </div>
     </div>
+
+    <!-- Paginação -->
+    <div class="flex justify-center mt-6 gap-3">
+      <button @click="prevPage" :disabled="currentPage <= 1"
+              class="px-5 py-2 border rounded-lg bg-white hover:bg-blue-50 disabled:opacity-50">
+        Anterior
+      </button>
+
+      <button @click="nextPage" :disabled="currentPage >= lastPage"
+              class="px-5 py-2 border rounded-lg bg-white hover:bg-blue-50 disabled:opacity-50">
+        Próxima
+      </button>
+    </div>
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAPIStore } from '@/stores/api'
-import { useUsersStore } from '@/stores/users'
 
-const api = useAPIStore()
-const usersStore = useUsersStore()
+const apiStore = useAPIStore()
 
-// Funções de criação de admin
 const formData = ref({
   name: '',
   nickname: '',
   email: '',
   password: '',
-  password_confirmation: '',
+  password_confirmation: ''
 })
+
 const avatarFile = ref(null)
 const message = ref('')
 const messageType = ref('success')
 
+const users = ref([])
+const currentPage = ref(1)
+const lastPage = ref(1)
+const selectedType = ref('')
+const selectedBlocked = ref('')
+
 const handleFileChange = (e) => (avatarFile.value = e.target.files[0])
 
+/* ========= CREATE ADMIN ========= */
 const handleSubmit = async () => {
   message.value = ''
   if (formData.value.password !== formData.value.password_confirmation) {
@@ -197,36 +179,99 @@ const handleSubmit = async () => {
 
     const res = await fetch('http://127.0.0.1:8000/api/admin/create-user', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${api.token}` },
-      body: dataToSend,
+      headers: { Authorization: `Bearer ${apiStore.token}` },
+      body: dataToSend
     })
 
-    if (!res.ok) {
-      const err = await res.json()
-      throw new Error(err.message || 'Erro ao criar admin')
-    }
+    if (!res.ok) throw new Error('Erro ao criar admin')
 
     message.value = 'Admin criado com sucesso!'
     messageType.value = 'success'
+
     formData.value = { name: '', nickname: '', email: '', password: '', password_confirmation: '' }
     avatarFile.value = null
 
-    // Atualiza lista de usuários
-    usersStore.fetchUsers()
+    fetchUsers(true)
   } catch (err) {
     message.value = err.message
     messageType.value = 'error'
   }
 }
 
-// Funções de usuários
-const fetchPage = (page) => {
-  usersStore.fetchUsers(page)
-}
-const storageUrl = (path) =>
-  path ? `${import.meta.env.VITE_APP_STORAGE_URL || '/storage'}/${path}` : ''
+/* ========= FETCH USERS ========= */
+const fetchUsers = async (reset = false) => {
+  if (reset) currentPage.value = 1
+  const params = new URLSearchParams({
+    page: currentPage.value,
+    type: selectedType.value,
+    blocked: selectedBlocked.value
+  })
 
-onMounted(() => {
-  usersStore.fetchUsers()
-})
+  const res = await fetch(`http://127.0.0.1:8000/api/admin/users?${params}`, {
+    headers: { Authorization: `Bearer ${apiStore.token}` }
+  })
+
+  const data = await res.json()
+  users.value = data.data
+  currentPage.value = data.meta.current_page
+  lastPage.value = data.meta.last_page
+}
+
+/* ========= BLOCK / UNBLOCK ========= */
+const toggleBlocked = async (user) => {
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/admin/users/${user.id}/toggle-block`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiStore.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ blocked: user.blocked ? 0 : 1 })
+    })
+
+    if (!res.ok) throw new Error('Erro ao atualizar status')
+
+    const data = await res.json()
+    user.blocked = data.data.blocked
+  } catch (err) {
+    alert(err.message)
+  }
+}
+
+/* ========= DELETE USER ========= */
+const deleteUser = async (user) => {
+  if (!confirm(`Tens a certeza que queres apagar ${user.nickname}?`)) return
+
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/admin/users/${user.id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${apiStore.token}`
+      }
+    })
+
+    if (!res.ok) throw new Error('Erro ao apagar utilizador')
+
+    users.value = users.value.filter(u => u.id !== user.id)
+  } catch (err) {
+    alert(err.message)
+  }
+}
+
+/* ========= PAGINATION ========= */
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+    fetchUsers()
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < lastPage.value) {
+    currentPage.value++
+    fetchUsers()
+  }
+}
+
+onMounted(fetchUsers)
 </script>
