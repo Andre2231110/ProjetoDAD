@@ -22,9 +22,12 @@ Route::middleware('auth:sanctum')->delete('/profile/delete', [ProfileController:
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/update', [ProfileController::class, 'update']);
 });
+Route::get('/admin/users', [AdminController::class, 'listAllUsers']);
+Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser']);
+Route::post('/admin/users/{id}/toggle-block', [AdminController::class, 'toggleBlockUser']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/admin/create-user', [AdminController::class, 'createUser']);
-    Route::get('/admin/users', [AdminController::class, 'listAllUsers']);
+   
 });
 
 Route::middleware('auth:sanctum')->group(function () {
