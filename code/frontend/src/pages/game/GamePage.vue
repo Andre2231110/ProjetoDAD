@@ -18,18 +18,21 @@
             </div>
 
             <!-- Placar -->
-            <div
-                class="absolute left-1/2 -translate-x-1/2 bg-black/40 px-6 py-1 rounded-full border border-white/10 backdrop-blur">
-                <div class="flex items-center gap-6 font-black text-xl tracking-widest">
-                    <div class="text-blue-300 flex flex-col items-center leading-none">
-                        <span>{{ gameStore.myPoints }}</span>
-                        <span class="text-[8px] opacity-60 font-normal tracking-normal">NÓS</span>
-                    </div>
-                    <div class="text-white/30 text-sm">vs</div>
+            <div class="absolute left-1/2 -translate-x-1/2 ...">
+                <div class="flex items-center gap-6 ...">
                     <div class="text-red-300 flex flex-col items-center leading-none">
                         <span>{{ gameStore.opponentPoints }}</span>
-                        <span class="text-[8px] opacity-60 font-normal tracking-normal">ELES</span>
+                        <!-- NOME DO OPONENTE DINÂMICO -->
+                        <span class="text-[8px] opacity-60 font-normal tracking-normal">
+                            {{ isMultiplayer ? 'OPONENTE' : 'BOT' }}
+                        </span>
                     </div>
+                    <div class="text-white/30 text-sm">vs</div>
+                    <div class="text-blue-300 flex flex-col items-center leading-none">
+                        <span>{{ gameStore.myPoints }}</span>
+                        <span class="text-[8px] ...">{{ authStore.currentUser?.nickname || 'Eu' }}</span>
+                    </div>
+                    
                 </div>
             </div>
 
@@ -134,6 +137,10 @@
                     Oponente a jogar...
                 </div>
             </div>
+            <div v-if="gameStore.currentTurn !== 'me' && !gameStore.isGameComplete"
+            class="absolute bottom-32 ...">
+            {{ isMultiplayer ? 'A aguardar jogada do oponente...' : 'Bot a pensar...' }}
+        </div>
 
         </main>
         <div v-if="gameStore.isGameComplete"
@@ -265,23 +272,25 @@ const leaveGame = () => {
 
 // Limpar ao sair da página (botão de retroceder do browser)
 onUnmounted(() => {
-    if (!isMultiplayer.value) {
-        gameStore.leaveGame();
-    }
+    // Limpa o jogo ao sair
+    gameStore.leaveGame();
 });
 
-// Iniciar ao entrar
 onMounted(() => {
-    const cardsToDeal = gameType.value === '9' ? 9 : 3;
-
+    // IMPORTANTE: Só inicia jogo local se NÃO for multiplayer
+    // No multiplayer, a store já foi preenchida pelo socket antes de entrar aqui
     if (!isMultiplayer.value) {
-        // Se a mão estiver vazia, inicia novo jogo
+        const cardsToDeal = gameType.value === '9' ? 9 : 3;
+        
+        // Inicia jogo contra BOT se a mão estiver vazia
         if (gameStore.myHand.length === 0) {
             gameStore.startGameLocal(cardsToDeal, isMatch.value);
-        } 
-        // Se mudaste de tipo de jogo (ex: 3 para 9) mas o state tinha lixo, reinicia também
-        else if (gameType.value === '9' && gameStore.myHand.length <= 3 && gameStore.deck.length > 0) {
-             gameStore.startGameLocal(cardsToDeal, isMatch.value);
+        }
+    } else {
+        // Validação de segurança: Se entrou na página multiplayer mas não tem dados
+        if (gameStore.myHand.length === 0 && gameStore.deck.length === 0) {
+            alert("Erro ao carregar jogo. A voltar ao lobby.");
+            router.push('/lobby');
         }
     }
 });

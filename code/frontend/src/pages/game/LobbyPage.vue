@@ -247,8 +247,6 @@
                                     </div>
                                 </div>
                                 <div class="flex gap-2">
-                                    <Button v-if="game.player2" @click="startGame(game)"
-                                        class="bg-emerald-500 hover:bg-emerald-600 font-bold">COMEÇAR</Button>
                                     <Button @click="cancelGame(game)" variant="outline"
                                         class="border-indigo-200 text-indigo-600 hover:bg-white">Cancelar</Button>
                                 </div>
@@ -304,7 +302,7 @@
                                             </p>
                                         </div>
                                         <Button @click="joinGame(game)"
-                                            :disabled="(authStore.user?.coins_balance ?? 0) < game.stake"
+                                            :disabled="(authStore.currentUser?.coins_balance ?? 0) < game.stake"
                                             class="bg-slate-900 hover:bg-indigo-600 text-white rounded-xl px-6 font-bold h-11 transition-all">
                                             ENTRAR
                                         </Button>
@@ -368,6 +366,7 @@ const startSinglePlayer = (config = null) => {
 };
 
 const joinGame = (game) => {
+    toast.error("Tou a entrar no jogo")
     const userBalance = authStore.currentUser?.coins_balance ?? 0;
     if (userBalance < game.stake) {
         toast.error("Saldo insuficiente.")
@@ -377,6 +376,7 @@ const joinGame = (game) => {
 }
 
 const cancelGame = (game) => {
+    console.log(game)
     gameStore.cancelGame(game.id)
     toast.info("Mesa cancelada.")
 }

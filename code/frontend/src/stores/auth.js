@@ -2,9 +2,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useAPIStore } from './api'
+import { useSocketStore } from './socket' 
 
 export const useAuthStore = defineStore('auth', () => {
   const apiStore = useAPIStore()
+  const socketStore = useSocketStore()
 
   const currentUser = ref(undefined)
 
@@ -18,7 +20,11 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (credentials) => {
     const response = await apiStore.postLogin(credentials)
     localStorage.setItem('token', apiStore.token) // salva token
+    
     await getUser()
+    if (currentUser.value) {
+        socketStore.emitJoin(currentUser.value)
+    }
     return currentUser.value
   }
 
@@ -26,6 +32,9 @@ export const useAuthStore = defineStore('auth', () => {
     const response = await apiStore.postRegister(formData)
     localStorage.setItem('token', apiStore.token)
     await getUser()
+    if (currentUser.value) {
+        socketStore.emitJoin(currentUser.value)
+    }
     return currentUser.value
   }
 
@@ -39,6 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
 
 
   const logout = async () => {
+    socketStore.emitLeave()
     await apiStore.postLogout()
     currentUser.value = undefined
   }
@@ -62,6 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       await apiStore.deleteProfile(password)
+      socketStore.emitLeave()
       currentUser.value = undefined
       localStorage.removeItem('token')
       if (apiStore.api?.defaults?.headers?.common) {

@@ -1,7 +1,7 @@
 import { getUser } from "../state/connection.js"
 // Importamos as funções da Bisca que criámos no step anterior
 // Repara que removemos flipCard e clearFlippedCard
-import { createGame, getGames, joinGame, removeGame } from "../state/game.js"
+import { createGame, getGames, joinGame, removeGame,playCard } from "../state/game.js"
 import { server } from "../server.js"
 
 export const handleGameEvents = (io, socket) => {
@@ -65,6 +65,7 @@ export const handleGameEvents = (io, socket) => {
     
     // --- 4. CANCELAR JOGO ---
     socket.on("cancel-game", (payload) => {
+        
         const user = getUser(socket.id)
         if (!user) return
 
@@ -83,6 +84,19 @@ export const handleGameEvents = (io, socket) => {
         if(gameId) {
             socket.leave(`game-${gameId}`)
             // Aqui poderias adicionar lógica para dar vitória ao adversário por desistência
+        }
+    })
+
+    socket.on("play-card", (payload) => {
+        const user = getUser(socket.id)
+        if (!user) return
+
+        // Executa a lógica
+        const game = playCard(payload.gameId, user.id, payload.card)
+        
+        if (game) {
+            // Envia o estado atualizado para AMBOS os jogadores
+            io.to(`game-${game.id}`).emit("game-update", game)
         }
     })
 }

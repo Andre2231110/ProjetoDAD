@@ -2,7 +2,7 @@
 
 // Usaremos um Array para facilitar a iteração e filtro dos jogos
 let games = [] 
-let gameIdCounter = 1 // Contador para gerar IDs únicos de jogo
+ // Contador para gerar IDs únicos de jogo
 
 // --- CONSTANTES DA BISCA ---
 const suits = ['c', 'o', 'p', 'e'] // Copas, Ouros, Paus, Espadas
@@ -65,9 +65,9 @@ export const getGames = () => {
 export const createGame = (config, user) => {
     // config vem do frontend: { type: '3', isMatch: true, stake: 10 }
     if (!config) config = {} // Caso não venha config
-
+    const uniqueId = Date.now() 
     const game = {
-        id: gameIdCounter++, // ID único para o jogo
+        id: uniqueId, // ID único para o jogo
         
         // --- DADOS DO LOBBY ---
         created_by: user.name || 'Anonymous', // Nome para mostrar no lobby
@@ -146,6 +146,8 @@ export const joinGame = (gameId, user) => {
 
 // Remove um jogo do lobby (quando o criador cancela)
 export const removeGame = (gameId, userId) => {
+    
+
     const index = games.findIndex(g => g.id == gameId)
     if (index !== -1) {
         // Só o criador pode remover
@@ -158,15 +160,122 @@ export const removeGame = (gameId, userId) => {
     return false
 }
 
-// Placeholder para a lógica de jogar uma carta (será implementada depois)
-export const playCard = (gameId, userId, cardId) => {
-    // Encontra o jogo
+// backend/state/game.js
+
+// ... (código anterior: games, createGame, joinGame, etc) ...
+
+// --- LÓGICA DE VAZA ---
+const resolveTrick = (game) => {
+    const c1 = game.table[0]
+    const c2 = game.table[1]
+    const trumpSuit = game.trump.suit
+    
+    let winnerId = null
+    let points = c1.value + c2.value
+
+    // Regras da Bisca para determinar vencedor
+    // c1 é a carta de quem abriu a vaza (playedBy tem o ID)
+    
+    let c1Wins = true
+
+    if (c1.suit === c2.suit) {
+        // Mesmo naipe: ganha a maior
+        if (c2.power > c1.power) c1Wins = false
+    } else {
+        // Naipes diferentes
+        if (c2.suit === trumpSuit) c1Wins = false // c2 trunfou
+        // Se c2 não é trunfo e naipes diferentes, c1 ganha (assistiu ou cortou sem trunfo)
+    }
+
+    winnerId = c1Wins ? c1.playedBy : c2.playedBy
+
+    // Atualizar pontos
+    if (winnerId === game.player1.id) {
+        game.p1Points += points
+    } else {
+        game.p2Points += points
+    }
+
+    return winnerId
+}
+
+const drawCards = (game) => {
+    if (game.deck.length === 0) return
+
+    // Tira duas cartas do monte
+    const card1 = game.deck.shift()
+    const card2 = game.deck.shift() // Pode ser undefined se só sobrar a do fundo (trunfo)
+
+    // O vencedor da vaza (game.turn) recebe a primeira carta
+    // O perdedor recebe a segunda
+    // Nota: Simplificação. Na bisca real, vencedor pesca primeiro.
+    // Vamos assumir que quem joga a seguir (vencedor) é quem recebe card1.
+    
+    if (game.turn === game.player1.id) {
+        if(card1) game.p1Hand.push(card1)
+        if(card2) game.p2Hand.push(card2)
+    } else {
+        if(card1) game.p2Hand.push(card1)
+        if(card2) game.p1Hand.push(card2)
+    }
+}
+
+// --- FUNÇÃO PRINCIPAL DE JOGAR ---
+const playCard = (gameId, userId, card) => {
     const game = games.find(g => g.id == gameId)
     if (!game) return null
-    if (game.turn !== userId) return null // Não é a vez do jogador
-    // ... Lógica para validar e mover a carta ...
-    return game // Retorna o estado atualizado do jogo
+    if (game.status !== 'Playing') return null
+    
+    // 1. Validar Turno
+    if (game.turn != userId) return null 
+
+    // 2. Validar se tem a carta e remover da mão
+    let hand = (game.player1.id == userId) ? game.p1Hand : game.p2Hand
+    const cardIndex = hand.findIndex(c => c.id === card.id)
+    
+    if (cardIndex === -1) return null // Tentou jogar carta que não tem (batota?)
+    
+    // Remove da mão
+    const playedCard = hand.splice(cardIndex, 1)[0]
+    playedCard.playedBy = userId // Marca quem jogou
+    
+    // Adiciona à mesa
+    game.table.push(playedCard)
+
+    // 3. Lógica de Jogo
+    if (game.table.length === 1) {
+        // Foi a primeira carta. Passa a vez ao outro.
+        game.turn = (userId == game.player1.id) ? game.player2.id : game.player1.id
+    } 
+    else if (game.table.length === 2) {
+        // Vaza completa! Resolver.
+        const winnerId = resolveTrick(game)
+        
+        // Vencedor joga a próxima
+        game.turn = winnerId
+        
+        // Pescar cartas (enquanto houver baralho)
+        if (game.deck.length > 0) {
+            drawCards(game)
+        }
+        
+        // Limpar mesa (Num jogo real, mandarias um evento 'trick-ended' e esperarias 2s)
+        // Aqui vamos limpar, mas o frontend tem de lidar com isso
+        // Para simplificar: enviamos a mesa cheia, o frontend mostra, e depois limpa.
+        // O ideal é: o servidor guarda 'lastTrick' para mostrar quem ganhou.
+        
+        game.lastTrick = [...game.table] // Guarda para mostrar histórico
+        game.table = [] // Limpa a mesa para a próxima
+        
+        // Verificar Fim de Jogo (Se não há cartas na mão)
+        if (game.p1Hand.length === 0 && game.p2Hand.length === 0) {
+            game.status = 'Ended'
+            // Definir vencedor final...
+        }
+    }
+
+    return game
 }
 
 // Exportar as funções necessárias para o backend/events
-export { suits, ranks, cardValues, cardPower }
+export { suits, ranks, cardValues, cardPower, playCard}
