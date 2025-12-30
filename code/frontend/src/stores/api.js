@@ -67,8 +67,9 @@ export const useAPIStore = defineStore('api', () => {
       },
     })
 
-    return response.data
+    return response.data // <-- precisa ter { user: ..., message: ... }
   }
+
 
   const deleteProfile = (password) => {
     if (!token.value) throw new Error('Usuário não autenticado')
