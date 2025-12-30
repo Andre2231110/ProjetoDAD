@@ -32,10 +32,11 @@ export const useAuthStore = defineStore('auth', () => {
   const updateProfile = async (formData) => {
     if (!apiStore.token) throw new Error('Usuário não autenticado')
 
-    const response = await apiStore.postUpdateProfile(formData)
-    currentUser.value = response.user || response.data.user
+    const response = await apiStore.postUpdateProfile(formData) // usa o postUpdateProfile do apiStore
+    currentUser.value = response.user || response.user // <-- aqui atualizas o currentUser
     return response
   }
+
 
   const logout = async () => {
     await apiStore.postLogout()
@@ -78,6 +79,8 @@ export const useAuthStore = defineStore('auth', () => {
       throw new Error(message)
     }
   }
+
+
 
   return {
     currentUser,

@@ -1,61 +1,62 @@
 <template>
   <Toaster richColors />
 
-  <nav class="max-w-5xl w-full mx-auto p-5 flex justify-between items-center bg-white shadow-md rounded-lg">
+  <nav class="max-w-[75%] w-full mx-auto p-5 flex justify-between items-center bg-white shadow-md rounded-lg">
     <div class="flex items-center gap-4">
       <RouterLink to="/" class="text-2xl font-extrabold text-indigo-600 hover:text-indigo-800">
         Página Inicial 🎴
       </RouterLink>
 
       <!-- Botão Lobby -->
-      <RouterLink
-        v-if="authStore.isLoggedIn"
-        to="/lobby"
-        class="ml-6 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
-      >
+      <RouterLink v-if="authStore.isLoggedIn" to="/lobby"
+        class="ml-6 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
         🃏 Jogar
       </RouterLink>
     </div>
 
     <!-- Área do utilizador -->
-    <div class="flex items-center gap-4">
-      <div v-if="authStore.isLoggedIn" class="flex items-center gap-2">
-        <!-- Avatar -->
-        <img
-          :src="authStore.currentUser?.profile_image || defaultAvatar"
-          alt="Avatar"
-          class="w-10 h-10 rounded-full border-2 border-indigo-600"
-        />
+    <div class="flex items-center gap-6">
+      <div v-if="authStore.isLoggedIn" class="flex items-center">
 
-        <!-- Nome do utilizador -->
-        <RouterLink
-          to="/profile"
-          class="font-medium text-slate-700 hover:text-indigo-600 transition-colors"
-        >
-          {{ authStore.currentUser?.name }}
+        <RouterLink to="/history"
+          class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-300">
+          <span>Histórico</span>
         </RouterLink>
 
-        <!-- Logout -->
-        <button
-          @click="handleLogout"
-          class="ml-4 px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-        >
-          Logout
+        <div class="h-8 w-[1px] bg-slate-200 mx-4"></div>
+
+        <RouterLink to="/profile" class="group flex items-center gap-3 pr-2">
+          <div class="relative">
+            <img :src="computedAvatar" alt="Avatar"
+              class="w-10 h-10 rounded-full border-2 border-transparent group-hover:border-indigo-500 object-cover transition-all shadow-sm" />
+            <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+          </div>
+
+          <div class="flex flex-col items-start leading-tight">
+            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Jogador</span>
+            <span class="font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
+              {{ authStore.currentUser?.name }}
+            </span>
+          </div>
+        </RouterLink>
+
+        <button @click="handleLogout"
+          class="ml-6 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all cursor-pointer"
+          title="Sair da conta">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
         </button>
       </div>
 
-      <!-- Login caso não esteja logado -->
-      <RouterLink
-        v-else
-        to="/login"
-        class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-      >
-        Login
+      <RouterLink v-else to="/login"
+        class="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full font-bold shadow-lg shadow-green-200 hover:scale-105 transition-all">
+        Entrar
       </RouterLink>
     </div>
   </nav>
 
-  <main class="container m-auto">
+  <main class="w-[95%] mx-auto py-8">
     <RouterView />
   </main>
 </template>
@@ -64,7 +65,7 @@
 import { RouterLink, RouterView } from 'vue-router'
 import { toast } from 'vue-sonner'
 import 'vue-sonner/style.css'
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { Toaster } from '@/components/ui/sonner'
 import { useAuthStore } from '@/stores/auth'
 import { useAPIStore } from '@/stores/api'
@@ -74,7 +75,8 @@ const socketStore = useSocketStore()
 const authStore = useAuthStore()
 const apiStore = useAPIStore()
 
-const defaultAvatar = '/default.jpg'
+const API_URL = 'http://127.0.0.1:8000'
+
 
 // Carregar token ao montar a app
 onMounted(async () => {
@@ -86,6 +88,14 @@ onMounted(async () => {
   socketStore.handleConnection()
   socketStore.handleGameEvents()
 })
+
+const computedAvatar = computed(() => {
+  const avatar = authStore.currentUser?.current_avatar
+  if (!avatar) return '/default.jpg'
+  return `${API_URL}/storage/${avatar}`
+})
+
+
 
 // Função de logout
 const handleLogout = () => {
