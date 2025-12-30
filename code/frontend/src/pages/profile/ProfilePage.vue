@@ -80,6 +80,8 @@ import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 const API_URL = 'http://127.0.0.1:8000'
 
+
+
 const computedAvatar = computed(() => {
   const avatar = authStore.currentUser?.current_avatar
   return avatar ? `${API_URL}/storage/${avatar}` : '/default.jpg'
