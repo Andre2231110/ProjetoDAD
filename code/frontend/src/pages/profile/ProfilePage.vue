@@ -1,111 +1,75 @@
 <template>
-  <div class="max-w-3xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg">
-    <h1 class="text-3xl font-bold mb-8 text-center text-indigo-700">Meu Perfil</h1>
+  <div class="container mx-auto p-6 space-y-8">
+    
+    <div class="max-w-[80%] mx-auto bg-white rounded-3xl shadow-xl border border-slate-100 p-10">
+      
+      <h1 class="text-3xl font-bold mb-8 text-center text-indigo-700">Meu Perfil</h1>
 
-    <!-- Avatar -->
-    <div class="flex flex-col md:flex-row items-center gap-6 mb-8">
-      <div class="relative">
-        <img :src="avatarPreview || computedAvatar" alt="Avatar"
-          class="w-32 h-32 rounded-full border-4 border-indigo-600 object-cover cursor-pointer" />
+      <div class="flex flex-col md:flex-row items-center gap-6 mb-8">
+        <div class="relative group">
+          <img :src="avatarPreview || computedAvatar" alt="Avatar"
+            class="w-32 h-32 rounded-full border-4 border-indigo-600 object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105" />
 
-        <input type="file" accept="image/*" @change="handleAvatarChange"
-          class="absolute inset-0 opacity-0 cursor-pointer rounded-full" />
+          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded-full cursor-pointer pointer-events-none">
+            <span class="text-white font-bold text-xs">Alterar</span>
+          </div>
 
+          <input type="file" accept="image/*" @change="handleAvatarChange"
+            class="absolute inset-0 opacity-0 cursor-pointer rounded-full" />
+        </div>
+
+        <p class="text-gray-600 text-sm md:text-base font-medium">
+          Clique no avatar para alterar sua foto
+        </p>
       </div>
 
-      <p class="text-gray-600 text-sm md:text-base">
-        Clique no avatar para alterar sua foto
-      </p>
-    </div>
+      <form @submit.prevent="handleUpdateProfile" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          <div class="space-y-1">
+            <label class="block text-base font-bold text-indigo-600 ml-1">Nome</label>
+            <input v-model="form.name" type="text"
+              class="w-full border-2 border-slate-50 rounded-xl p-4 focus:ring-2 focus:ring-indigo-400 outline-none transition-all shadow-sm" required />
+          </div>
 
+          <div class="space-y-1">
+            <label class="block text-base font-bold text-indigo-600 ml-1">Nickname</label>
+            <input v-model="form.nickname" type="text"
+              class="w-full border-2 border-slate-50 rounded-xl p-4 focus:ring-2 focus:ring-indigo-400 outline-none transition-all shadow-sm" required />
+          </div>
 
-    <!-- isto é so para debug
-    <pre class="text-xs text-red-500">
-      {{ authStore.currentUser }}
-    </pre> -->
-    <!-- Formulário -->
-    <form @submit.prevent="handleUpdateProfile" class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block font-medium mb-1">Nome</label>
-          <input v-model="form.name" type="text"
-            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-indigo-400 outline-none" required />
-        </div>
+          <div class="md:col-span-2 space-y-1">
+            <label class="block text-base font-bold text-indigo-600 ml-1">Email</label>
+            <input v-model="form.email" type="email"
+              class="w-full border-2 border-slate-50 rounded-xl p-4 focus:ring-2 focus:ring-indigo-400 outline-none transition-all shadow-sm" required />
+          </div>
 
-        <div>
-          <label class="block font-medium mb-1">Nickname</label>
-          <input v-model="form.nickname" type="text"
-            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-indigo-400 outline-none" required />
-        </div>
+          <div class="space-y-1">
+            <label class="block text-base font-bold text-indigo-600 ml-1">Nova Palavra-passe</label>
+            <input v-model="form.password" type="password" placeholder="Deixe em branco para manter"
+              class="w-full border-2 border-slate-50 rounded-xl p-4 focus:ring-2 focus:ring-indigo-400 outline-none transition-all shadow-sm" />
+          </div>
 
-        <div class="md:col-span-2">
-          <label class="block font-medium mb-1">Email</label>
-          <input v-model="form.email" type="email"
-            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-indigo-400 outline-none" required />
-        </div>
-
-        <div>
-          <label class="block font-medium mb-1">Nova Senha</label>
-          <input v-model="form.password" type="password" placeholder="Deixe em branco para manter"
-            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-indigo-400 outline-none" />
-        </div>
-
-        <div>
-          <label class="block font-medium mb-1">Confirmar Senha</label>
-          <input v-model="form.password_confirmation" type="password" placeholder="Repita a nova senha"
-            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-indigo-400 outline-none" />
-        </div>
-      </div>
-
-      <div class="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
-        <button type="submit"
-          class="w-full md:w-auto px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-          Atualizar Perfil
-        </button>
-
-        <button type="button" @click="deleteAccount" :disabled="authStore.currentUser?.type === 'A'"
-          class="w-full md:w-auto px-6 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-          Excluir Conta
-        </button>
-      </div>
-    </form>
-
-    <!-- Modal de exclusão -->
-    <transition name="fade">
-      <div v-if="showDeleteModal" class="fixed inset-0 flex items-center justify-center z-50 bg-[rgba(0,0,0,0.35)]">
-        <div class="bg-white rounded-2xl p-6 w-96 shadow-xl relative">
-          <h2 class="text-2xl font-bold mb-4 text-red-600">Confirmar Exclusão</h2>
-          <p class="mb-4 text-gray-700 text-sm">
-            Esta ação é permanente e todos os coins serão perdidos.
-            Digite sua senha para confirmar a exclusão da conta.
-          </p>
-
-          <input v-model="password" type="password" placeholder="Senha"
-            class="w-full border rounded-lg p-3 mb-4 focus:ring-2 focus:ring-red-400 outline-none" />
-
-          <div class="flex justify-end gap-2">
-            <button @click="showDeleteModal = false"
-              class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition-colors">
-              Cancelar
-            </button>
-            <button @click="confirmDelete"
-              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-              Excluir
-            </button>
+          <div class="space-y-1">
+            <label class="block text-base font-bold text-indigo-600 ml-1">Confirmar Palavra-passe</label>
+            <input v-model="form.password_confirmation" type="password" placeholder="Repita a nova senha"
+              class="w-full border-2 border-slate-50 rounded-xl p-4 focus:ring-2 focus:ring-indigo-400 outline-none transition-all shadow-sm" />
           </div>
         </div>
-      </div>
-    </transition>
 
-    <!-- Toast de mensagens -->
-    <transition name="slide-fade">
-      <div v-if="showToast" :class="[
-        'fixed top-5 right-5 px-5 py-3 rounded-lg shadow-lg text-white font-medium',
-        toastType === 'success' ? 'bg-green-500' : 'bg-red-500'
-      ]">
-        {{ toastMessage }}
-      </div>
-    </transition>
+        <div class="flex flex-col md:flex-row justify-between items-center mt-12 gap-6 pt-8 border-t border-slate-50">
+          <button type="submit"
+            class="w-full md:w-auto px-10 py-4 bg-indigo-600 text-white rounded-xl font-bold uppercase tracking-wider hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all active:scale-95">
+            Atualizar Perfil
+          </button>
+
+          <button type="button" @click="deleteAccount" :disabled="authStore.currentUser?.type === 'A'"
+            class="w-full md:w-auto px-10 py-4 border-2 border-red-100 text-red-500 rounded-xl font-bold hover:bg-red-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+            Excluir Conta
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 

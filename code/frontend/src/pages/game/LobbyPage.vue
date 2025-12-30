@@ -1,6 +1,6 @@
 <template>
     <div class="container mx-auto p-6">
-        <div class="max-w-5xl mx-auto space-y-8">
+        <div class="max-w-[80%] mx-auto space-y-8">
 
             <!-- CABEÇALHO DE STATUS -->
             <div

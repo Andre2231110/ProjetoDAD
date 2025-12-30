@@ -1,54 +1,59 @@
 <template>
-  <div class="flex min-h-screen items-center justify-center">
-    <div class="w-full max-w-md space-y-8 shadow-lg p-8 rounded-lg bg-white">
-      <div>
-        <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-          Sign in to your account
+  <div class="container mx-auto p-6 flex min-h-[80vh] items-center justify-center">
+    
+    <div class="w-full max-w-4xl space-y-8 shadow-2xl p-12 rounded-3xl bg-white border border-slate-100">
+      
+      <div class="space-y-2">
+        <h2 class="text-center text-4xl font-black tracking-tight text-indigo-900 uppercase">
+          Entrar na Conta
         </h2>
-        <p class="mt-2 text-center text-sm text-gray-600">
-          Enter your credentials to access your account
+        <p class="text-center text-sm font-medium text-slate-400">
+          Insere as tuas credenciais para acederes à tua área de jogo
         </p>
       </div>
 
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
-        <div class="space-y-4 rounded-md">
-          <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-              Email address
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6"> 
+          
+          <div class="space-y-1">
+            <label for="email" class="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">
+              Endereço de Email
             </label>
             <Input
               id="email"
               v-model="formData.email"
               type="email"
-              autocomplete="email"
+              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
               required
-              placeholder="you@example.com"
+              placeholder="exemplo@email.com"
             />
           </div>
 
-          <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-              Password
+          <div class="space-y-1">
+            <label for="password" class="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">
+              Palavra-passe
             </label>
             <Input
               id="password"
               v-model="formData.password"
               type="password"
-              autocomplete="current-password"
+              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
               required
               placeholder="••••••••"
             />
           </div>
         </div>
 
-        <div>
-          <Button type="submit" class="w-full"> Sign in </Button>
+        <div class="pt-4">
+          <Button type="submit" class="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg shadow-lg shadow-indigo-100 rounded-xl transition-all active:scale-95"> 
+            ENTRAR NO JOGO
+          </Button>
         </div>
 
-        <div class="text-center text-sm">
-          <span class="text-gray-600">Don't have an account? </span>
-          <router-link to="/register" class="font-medium text-blue-600 hover:text-blue-500">
-            Sign up
+        <div class="text-center text-sm font-bold">
+          <span class="text-slate-400">Ainda não tens conta? </span>
+          <router-link to="/register" class="text-indigo-600 hover:text-indigo-800 transition-colors">
+            Regista-te aqui
           </router-link>
         </div>
       </form>
@@ -60,7 +65,6 @@
 import { ref } from 'vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
@@ -76,11 +80,10 @@ const formData = ref({
 const handleSubmit = async () => {
   try {
     const user = await authStore.login(formData.value)
-
-    toast.success(`Login successful - ${user.name}`)
+    toast.success(`Bem-vinda de volta, ${user.name}!`)
     router.push('/')
   } catch (e) {
-    toast.error('[API] Error logging in')
+    toast.error('Erro ao iniciar sessão. Verifica os teus dados.')
   }
 }
 </script>
