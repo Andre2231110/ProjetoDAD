@@ -32,12 +32,25 @@
                         <span>{{ gameStore.myPoints }}</span>
                         <span class="text-[8px] ...">{{ authStore.currentUser?.nickname || 'Eu' }}</span>
                     </div>
-                    
+
                 </div>
             </div>
 
             <!-- Avatar -->
             <div class="flex items-center gap-2">
+                <div v-if="isMultiplayer && !gameStore.isGameComplete"
+                    class="absolute bottom-20 left-1/2 -translate-x-1/2 w-64">
+                    <div class="flex justify-between text-xs text-white font-bold mb-1 shadow-black drop-shadow-md">
+                        <span>Tempo Restante</span>
+                        <span :class="timeLeft < 5 ? 'text-red-500 animate-ping' : 'text-white'">{{ timeLeft }}s</span>
+                    </div>
+                    <div class="h-2 bg-gray-700 rounded-full overflow-hidden border border-white/20">
+                        <div class="h-full transition-all duration-1000 ease-linear"
+                            :class="timeLeft < 5 ? 'bg-red-500' : 'bg-emerald-400'"
+                            :style="{ width: (timeLeft / 20 * 100) + '%' }">
+                        </div>
+                    </div>
+                </div>
                 <div class="text-right leading-tight hidden sm:block">
                     <p class="font-bold text-xs">{{ authStore.currentUser?.nickname || 'Eu' }}</p>
                 </div>
@@ -137,10 +150,9 @@
                     Oponente a jogar...
                 </div>
             </div>
-            <div v-if="gameStore.currentTurn !== 'me' && !gameStore.isGameComplete"
-            class="absolute bottom-32 ...">
-            {{ isMultiplayer ? 'A aguardar jogada do oponente...' : 'Bot a pensar...' }}
-        </div>
+            <div v-if="gameStore.currentTurn !== 'me' && !gameStore.isGameComplete" class="absolute bottom-32 ...">
+                {{ isMultiplayer ? 'A aguardar jogada do oponente...' : 'Bot a pensar...' }}
+            </div>
 
         </main>
         <div v-if="gameStore.isGameComplete"
@@ -151,6 +163,17 @@
 
                 <!-- Efeito de Fundo (Brilho) -->
                 <div class="absolute inset-0 bg-gradient-to-b from-emerald-500/10 to-transparent pointer-events-none">
+                </div>
+                <div v-if="gameStore.resignedBy"
+                    class="mb-4 p-3 rounded bg-red-900/50 border border-red-500 text-center animate-pulse">
+                    <p class="text-white font-bold text-lg">
+                        ⛔ JOGO TERMINADO POR DESISTÊNCIA
+                    </p>
+                    <p class="text-sm text-red-200">
+                        {{ gameStore.resignedBy == authStore.currentUser.id
+                            ? 'Tu desististe da partida.'
+                            : 'O oponente abandonou o jogo.' }}
+                    </p>
                 </div>
 
                 <!-- Título: Resultado do Jogo -->
@@ -201,7 +224,8 @@
                     <div v-if="gameStore.matchWinner" class="mt-4 pt-4 border-t border-white/10">
                         <span class="text-xl font-bold uppercase animate-pulse"
                             :class="gameStore.matchWinner === 'me' ? 'text-yellow-400' : 'text-red-500'">
-                            {{ gameStore.matchWinner === 'me' ? '🏆 Vencedor da Partida! 🏆' : '💀 Perdeste a Partida💀' }}
+                            {{ gameStore.matchWinner === 'me' ? '🏆 Vencedor da Partida! 🏆' : '💀 Perdeste a Partida💀'
+                            }}
                         </span>
                     </div>
                 </div>
@@ -228,7 +252,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, ref, watch, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useGameStore } from '@/stores/game';
 import { useAuthStore } from '@/stores/auth';
@@ -242,6 +266,33 @@ const authStore = useAuthStore();
 const gameType = computed(() => route.query.type || '3');
 const isMultiplayer = computed(() => route.query.mode === 'multiplayer');
 const isMatch = computed(() => route.query.isMatch === 'true');
+
+const timeLeft = ref(20)
+let timerInterval = null
+
+const resetVisualTimer = () => {
+    clearInterval(timerInterval)
+    timeLeft.value = 20
+
+    if (gameStore.isGameComplete) return
+
+    timerInterval = setInterval(() => {
+        if (timeLeft.value > 0) {
+            timeLeft.value--
+        } else {
+            clearInterval(timerInterval)
+        }
+    }, 1000)
+}
+
+// Observar mudança de turno na Store
+watch(() => gameStore.currentTurn, () => {
+    if (isMultiplayer.value) {
+        resetVisualTimer()
+    }
+})
+
+
 
 // 2. Helper de Imagem
 const getCardSrc = (card) => {
@@ -265,7 +316,15 @@ const quitGame = () => {
 
 // Botão "Sair" (Canto superior esquerdo)
 const leaveGame = () => {
-    quitGame(); // Reutiliza a mesma lógica
+    // --- DOUBLE CONFIRMATION ---
+    // O browser abre um popup nativo que obriga o user a clicar "OK" ou "Cancelar"
+    const message = isMultiplayer.value
+        ? "⚠️ ATENÇÃO: Se desistires, o oponente ganha todos os pontos da mesa e das mãos! Tens a certeza?"
+        : "Queres sair do treino? O progresso será perdido.";
+
+    if (confirm(message)) {
+        quitGame(); // Chama a função que emite o leave-game
+    }
 };
 
 // 4. Ciclo de Vida
@@ -274,6 +333,7 @@ const leaveGame = () => {
 onUnmounted(() => {
     // Limpa o jogo ao sair
     gameStore.leaveGame();
+    clearInterval(timerInterval)
 });
 
 onMounted(() => {
@@ -281,7 +341,7 @@ onMounted(() => {
     // No multiplayer, a store já foi preenchida pelo socket antes de entrar aqui
     if (!isMultiplayer.value) {
         const cardsToDeal = gameType.value === '9' ? 9 : 3;
-        
+
         // Inicia jogo contra BOT se a mão estiver vazia
         if (gameStore.myHand.length === 0) {
             gameStore.startGameLocal(cardsToDeal, isMatch.value);
@@ -293,6 +353,8 @@ onMounted(() => {
             router.push('/lobby');
         }
     }
+
+    if (isMultiplayer.value) resetVisualTimer()
 });
 </script>
 

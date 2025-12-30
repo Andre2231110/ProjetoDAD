@@ -24,6 +24,29 @@ const cardPower = {
     6: 5, 5: 4, 4: 3, 3: 2, 2: 1 
 }
 
+const gameTimers = new Map() 
+
+export const clearTurnTimer = (gameId) => {
+    if (gameTimers.has(gameId)) {
+        clearTimeout(gameTimers.get(gameId))
+        gameTimers.delete(gameId)
+    }
+}
+
+export const startTurnTimer = (gameId, onTimeoutCallback) => {
+    // 1. Limpa timer anterior se existir
+    clearTurnTimer(gameId)
+
+    // 2. Inicia novo timer de 20 segundos (20000ms)
+    const timer = setTimeout(() => {
+        console.log(`[Timer] Tempo esgotado para o jogo ${gameId}`)
+        onTimeoutCallback() // Executa a função de desistência
+    }, 20000)
+
+    // 3. Guarda o timer
+    gameTimers.set(gameId, timer)
+}
+
 // Função para criar um baralho de Bisca completo (40 cartas)
 const buildDeck = () => {
     const deck = []
@@ -235,6 +258,8 @@ const playCard = (gameId, userId, card) => {
     
     if (cardIndex === -1) return null // Tentou jogar carta que não tem (batota?)
     
+    clearTurnTimer(gameId)
+
     // Remove da mão
     const playedCard = hand.splice(cardIndex, 1)[0]
     playedCard.playedBy = userId // Marca quem jogou
@@ -274,8 +299,68 @@ const playCard = (gameId, userId, card) => {
         }
     }
 
+    if (game.status === 'Ended') {
+        clearTurnTimer(gameId)
+    }
+
+    return game
+}
+const sumPoints = (cards) => {
+    return cards.reduce((total, card) => total + card.value, 0)
+}
+
+const resignGame = (gameId, userId) => {
+
+    clearTurnTimer(gameId)
+    const game = games.find(g => g.id == gameId)
+    
+    // Validações
+    if (!game) return null
+    if (game.status !== 'Playing') return null // Só se pode desistir se o jogo estiver a decorrer
+
+    // Identificar quem desistiu e quem ganha
+    const isP1Resigning = (game.player1.id == userId)
+    const opponentId = isP1Resigning ? game.player2.id : game.player1.id
+
+    // 1. O OPONENTE RECEBE TODAS AS CARTAS RESTANTES
+    // (Mãos de ambos + Baralho + Mesa)
+    let extraPoints = 0
+    extraPoints += sumPoints(game.p1Hand)
+    extraPoints += sumPoints(game.p2Hand)
+    extraPoints += sumPoints(game.deck)
+    extraPoints += sumPoints(game.table)
+
+    // Atribuir os pontos ao oponente
+    if (isP1Resigning) {
+        game.p2Points += extraPoints
+    } else {
+        game.p1Points += extraPoints
+    }
+
+    // Limpar o tabuleiro (simboliza que as cartas foram recolhidas)
+    game.p1Hand = []
+    game.p2Hand = []
+    game.deck = []
+    game.table = []
+
+    // 2. TERMINAR O JOGO
+    game.status = 'Ended'
+    game.winner = opponentId // Vencedor deste jogo específico
+
+    if (!game.resignedBy) game.resignedBy = userId 
+
+    // 3. SE FOR MATCH, A DESISTÊNCIA APLICA-SE A TUDO
+    if (game.isMatch) {
+        game.matchWinner = opponentId
+        // Opcional: Podes definir as marcas para 4-0 se quiseres ser explícito
+        if (isP1Resigning) game.p2Marks = 4
+        else game.p1Marks = 4
+    }
+
+    console.log(`[State] Jogo ${game.id}: User ${userId} desistiu. Vitória para ${opponentId}.`)
+    
     return game
 }
 
 // Exportar as funções necessárias para o backend/events
-export { suits, ranks, cardValues, cardPower, playCard}
+export { suits, ranks, cardValues, cardPower, playCard, resignGame}
