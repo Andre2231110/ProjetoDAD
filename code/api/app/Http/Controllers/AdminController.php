@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class AdminController extends Controller
 {
@@ -44,34 +47,20 @@ class AdminController extends Controller
     public function listAllUsers(Request $request): JsonResponse
     {
         try {
-            // Paginação opcional (default 10 por página)
-            $perPage = $request->query('per_page', 10);
-
-            $usersQuery = User::select(
-                'id',
-                'name',
-                'nickname',
-                'email',
-                'type',
-                'blocked',
-                'coins_balance',
-                'current_avatar'
-            )->orderBy('id', 'desc');
-
-            $users = $usersQuery->paginate($perPage);
+            // Pega os usuários direto do banco, sem usar o modelo
+            $users = \DB::table('users')
+                ->select('id', 'name', 'nickname', 'email', 'type', 'blocked')
+                ->orderBy('id', 'desc')
+                ->get();
 
             return response()->json([
-                'data' => $users->items(),
-                'meta' => [
-                    'current_page' => $users->currentPage(),
-                    'last_page'    => $users->lastPage(),
-                    'per_page'     => $users->perPage(),
-                    'total'        => $users->total()
-                ]
+                'data' => $users
             ], 200);
-        } catch (\Exception $e) {
-            \Log::error("Erro ao listar usuários: " . $e->getMessage());
-            return response()->json(['error' => 'Server error'], 500);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'Server error',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 }
