@@ -87,6 +87,10 @@ onMounted(async () => {
   }
   socketStore.handleConnection()
   socketStore.handleGameEvents()
+
+  if (authStore.currentUser) {
+      socketStore.emitJoin(authStore.currentUser)
+  }
 })
 
 const computedAvatar = computed(() => {
