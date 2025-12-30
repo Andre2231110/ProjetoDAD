@@ -1,8 +1,8 @@
 <template>
   <div class="container mx-auto p-6 flex min-h-[80vh] items-center justify-center">
-    
+
     <div class="w-full max-w-4xl space-y-8 shadow-2xl p-12 rounded-3xl bg-white border border-slate-100">
-      
+
       <div class="space-y-2">
         <h2 class="text-center text-4xl font-black tracking-tight text-indigo-900 uppercase">
           Entrar na Conta
@@ -13,8 +13,8 @@
       </div>
 
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6"> 
-          
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
           <div class="space-y-1">
             <label for="email" class="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">
               Endereço de Email
@@ -45,8 +45,8 @@
         </div>
 
         <div class="pt-4">
-          <Button type="submit" class="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg shadow-lg shadow-indigo-100 rounded-xl transition-all active:scale-95"> 
-            ENTRAR NO JOGO
+          <Button type="submit" class="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg shadow-lg shadow-indigo-100 rounded-xl transition-all active:scale-95 cursor-pointer">
+            Login
           </Button>
         </div>
 

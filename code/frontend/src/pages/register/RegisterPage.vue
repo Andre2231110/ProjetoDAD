@@ -1,8 +1,8 @@
 <template>
   <div class="container mx-auto p-6 flex min-h-[90vh] items-center justify-center">
-    
+
     <div class="w-full max-w-[80%] mx-auto bg-white rounded-3xl shadow-xl border border-slate-100 p-10 space-y-8">
-      
+
       <div class="text-center md:text-left">
         <h2 class="text-4xl font-black text-indigo-900 tracking-tight uppercase">
           Criar Conta
@@ -19,7 +19,7 @@
             <label for="name" class="block text-base font-bold text-indigo-600 ml-1">
               Nome Completo
             </label>
-            <Input id="name" v-model="formData.name" type="text" 
+            <Input id="name" v-model="formData.name" type="text"
               class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
               required placeholder="Teu nome aqui" />
           </div>
@@ -28,7 +28,7 @@
             <label for="nickname" class="block text-base font-bold text-indigo-600 ml-1">
               Alcunha (Nickname)
             </label>
-            <Input id="nickname" v-model="formData.nickname" type="text" 
+            <Input id="nickname" v-model="formData.nickname" type="text"
               class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
               required placeholder="Ex: MestreDaBisca" />
           </div>
@@ -37,7 +37,7 @@
             <label for="email" class="block text-base font-bold text-indigo-600 ml-1">
               Endereço de Email
             </label>
-            <Input id="email" v-model="formData.email" type="email" 
+            <Input id="email" v-model="formData.email" type="email"
               class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
               required placeholder="exemplo@email.com" />
           </div>
@@ -46,7 +46,7 @@
             <label for="password" class="block text-base font-bold text-indigo-600 ml-1">
               Palavra-passe
             </label>
-            <Input id="password" v-model="formData.password" type="password" 
+            <Input id="password" v-model="formData.password" type="password"
               class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
               required placeholder="••••••••" />
           </div>
@@ -55,7 +55,7 @@
             <label for="password_confirmation" class="block text-base font-bold text-indigo-600 ml-1">
               Confirmar Palavra-passe
             </label>
-            <Input id="password_confirmation" v-model="formData.password_confirmation" 
+            <Input id="password_confirmation" v-model="formData.password_confirmation"
               class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
               type="password" required placeholder="••••••••" />
           </div>
@@ -71,8 +71,8 @@
         </div>
 
         <div class="pt-6">
-          <Button type="submit" class="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg shadow-lg shadow-indigo-100 rounded-xl transition-all active:scale-95 uppercase tracking-widest"> 
-            Criar Minha Conta
+          <Button type="submit" class="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg shadow-lg shadow-indigo-100 rounded-xl transition-all active:scale-95 uppercase tracking-widest cursor-pointer">
+            Criar Conta
           </Button>
         </div>
 
