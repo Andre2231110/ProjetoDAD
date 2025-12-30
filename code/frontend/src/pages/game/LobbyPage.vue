@@ -76,7 +76,6 @@
                                                 :class="['font-black text-sm', !newGame.isMatch ? 'text-indigo-900' : 'text-slate-600']">
                                                 Jogo Único
                                             </p>
-                                            
                                         </div>
                                         <p
                                             class="text-[10px] font-bold text-indigo-400/80 uppercase italic tracking-tighter">
@@ -96,7 +95,6 @@
                                                 :class="['font-black text-sm', newGame.isMatch ? 'text-indigo-900' : 'text-slate-600']">
                                                 Match (4 Marcas)
                                             </p>
-                                        
                                         </div>
                                         <p
                                             class="text-[10px] font-bold text-indigo-400/80 uppercase italic tracking-tighter">
@@ -205,7 +203,6 @@
                                                 :class="['font-black text-sm', botGameConfig.isMatch ? 'text-slate-900' : 'text-slate-500']">
                                                 Simular Match
                                             </p>
-                                            
                                         </div>
                                         <p
                                             class="text-[10px] font-bold text-slate-400 uppercase italic tracking-tighter">
@@ -215,7 +212,6 @@
                                 </div>
                             </div>
 
-                            <!-- Espaçador para alinhar botões se necessário -->
                             <div class="pt-4 mt-auto">
                                 <Button @click="startSinglePlayer(botGameConfig)"
                                     class="w-full h-14 bg-slate-800 hover:bg-slate-900 text-white font-black text-lg shadow-lg shadow-slate-200">
@@ -230,11 +226,11 @@
                 <!-- LINHA INFERIOR: LOBBY E MEUS JOGOS -->
                 <div class="space-y-6">
 
-                    <!-- Meus Jogos Ativos -->
-                    <div v-if="gameStore.myGames.length > 0" class="space-y-3">
+                    <!-- MEUS JOGOS ATIVOS (Correção: uso de myGamesSafe) -->
+                    <div v-if="myGamesSafe.length > 0" class="space-y-3">
                         <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest px-2">As Tuas Mesas</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div v-for="game in gameStore.myGames" :key="game.id"
+                            <div v-for="game in myGamesSafe" :key="game.id"
                                 class="bg-indigo-50 border-2 border-indigo-200 p-4 rounded-2xl flex items-center justify-between shadow-sm animate-pulse-slow">
                                 <div class="flex gap-4 items-center">
                                     <div
@@ -242,10 +238,12 @@
                                         B{{ game.type }}
                                     </div>
                                     <div>
-                                        <p class="font-black text-indigo-900">{{ game.isMatch ? 'Match' : 'Individual'
-                                            }}</p>
-                                        <p class="text-xs font-bold text-indigo-400 uppercase">Aposta: {{ game.stake }}
-                                            💰</p>
+                                        <p class="font-black text-indigo-900">
+                                            {{ game.isMatch ? 'Match' : 'Individual' }}
+                                        </p>
+                                        <p class="text-xs font-bold text-indigo-400 uppercase">
+                                            Aposta: {{ game.stake }} 💰
+                                        </p>
                                     </div>
                                 </div>
                                 <div class="flex gap-2">
@@ -258,7 +256,7 @@
                         </div>
                     </div>
 
-                    <!-- Lobby Global -->
+                    <!-- LOBBY GLOBAL (Correção: uso de availableGamesSafe) -->
                     <Card class="min-h-[400px]">
                         <CardHeader class="flex flex-row items-center justify-between border-b border-slate-50 pb-4">
                             <CardTitle class="text-xl font-black">Lobby de Jogos Disponíveis</CardTitle>
@@ -267,27 +265,29 @@
                             </Button>
                         </CardHeader>
                         <CardContent class="p-0">
-                            <div v-if="!gameStore.availableGames?.length"
+                            <!-- Estado Vazio -->
+                            <div v-if="availableGamesSafe.length === 0"
                                 class="flex flex-col items-center justify-center py-20 text-slate-300">
                                 <span class="text-6xl mb-4 text-slate-200">🎴</span>
                                 <p class="font-bold">Nenhuma mesa aberta de momento...</p>
                             </div>
 
+                            <!-- Lista de Jogos -->
                             <div v-else class="divide-y divide-slate-50">
-                                <div v-for="game in gameStore.availableGames" :key="game.id"
+                                <div v-for="game in availableGamesSafe" :key="game.id"
                                     class="p-5 flex flex-col md:flex-row items-center justify-between hover:bg-slate-50 transition-colors gap-4">
 
                                     <div class="flex items-center gap-4 w-full md:w-auto">
                                         <div
                                             class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center border-2 border-white shadow-sm font-black text-slate-600">
-                                            {{ game.creator.charAt(0) }}
+                                            {{ (game.created_by || '?').charAt(0).toUpperCase() }}
                                         </div>
                                         <div>
-                                            <p class="font-black text-slate-800 tracking-tight">{{ game.creator }}'s
-                                                Table</p>
+                                            <p class="font-black text-slate-800 tracking-tight">{{ game.creator }}'s Table</p>
                                             <div class="flex gap-2 mt-1">
-                                                <Badge variant="secondary" class="text-[10px] px-2 py-0">Bisca {{
-                                                    game.type }}</Badge>
+                                                <Badge variant="secondary" class="text-[10px] px-2 py-0">
+                                                    Bisca {{ game.type }}
+                                                </Badge>
                                                 <Badge v-if="game.isMatch"
                                                     class="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none text-[10px]">
                                                     🏆 Match
@@ -296,15 +296,15 @@
                                         </div>
                                     </div>
 
-                                    <div
-                                        class="flex items-center gap-8 w-full md:w-auto justify-between md:justify-end">
+                                    <div class="flex items-center gap-8 w-full md:w-auto justify-between md:justify-end">
                                         <div class="text-right">
                                             <p class="text-[10px] font-black text-slate-400 uppercase">Stake</p>
-                                            <p class="text-xl font-black text-emerald-600 leading-none">{{ game.stake }}
-                                                💰</p>
+                                            <p class="text-xl font-black text-emerald-600 leading-none">
+                                                {{ game.stake }} 💰
+                                            </p>
                                         </div>
                                         <Button @click="joinGame(game)"
-                                            :disabled="authStore.user?.coins_balance < game.stake"
+                                            :disabled="(authStore.user?.coins_balance ?? 0) < game.stake"
                                             class="bg-slate-900 hover:bg-indigo-600 text-white rounded-xl px-6 font-bold h-11 transition-all">
                                             ENTRAR
                                         </Button>
@@ -321,8 +321,7 @@
 </template>
 
 <script setup>
- import { ref } from 'vue'
-import { reactive, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/game'
 import { useAuthStore } from '@/stores/auth'
@@ -330,67 +329,56 @@ import { useSocketStore } from '@/stores/socket'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'vue-sonner' // Importa toast para feedback
 
 const router = useRouter()
 const gameStore = useGameStore()
 const authStore = useAuthStore()
 const socketStore = useSocketStore()
 
-// Configuração inicial para novo jogo (Seguindo as regras do PDF)
-const newGame = ref({
-    type: '3',      // '3' para Bisca de 3, '9' para Bisca de 9
-    isMatch: false, // Jogo Único vs Match de 4 marcas
-    stake: 2        // 2 coins para jogo único, min 3 para Match
+// Computeds Seguros
+const myGamesSafe = computed(() => gameStore.myGames || [])
+console.log(myGamesSafe)
+const availableGamesSafe = computed(() => gameStore.availableGames || [])
+
+// Configurações
+const newGame = ref({ type: '3', isMatch: false, stake: 2 })
+const botGameConfig = ref({ type: '3', isMatch: false });
+
+watch(() => newGame.value.isMatch, (isMatch) => {
+    newGame.value.stake = isMatch ? 3 : 2
 })
 
-const botGameConfig = ref({
-    type: '3',       // Valor inicial: Bisca de 3
-    isMatch: false   // Valor inicial: Jogo Rápido (não match)
-});
-
-// Ajusta a aposta mínima automaticamente se mudar para Match
-watch(() => newGame.isMatch, (isMatch) => {
-    newGame.stake = isMatch ? 3 : 2
-})
+// --- ACTIONS ---
 
 const handleCreate = () => {
-    // Validação de saldo
-    if (authStore.user.coins_balance < newGame.stake) {
-        alert("Saldo de moedas insuficiente!")
+    const userBalance = authStore.currentUser?.coins_balance ?? 0;
+    if (userBalance < newGame.value.stake) {
+        toast.error(`Saldo insuficiente! Precisas de ${newGame.value.stake} moedas.`)
         return
     }
-    // O gameStore.createGame deve agora aceitar este objeto completo
-    gameStore.createGame({ ...newGame })
+    // Cria o jogo e notifica o utilizador
+    gameStore.createGame({ ...newGame.value })
+    toast.success("Mesa criada! Aguarde que um oponente entre.")
 }
 
 const startSinglePlayer = (config = null) => {
-    // Se a função for chamada sem argumentos (pelo botão antigo), usa um padrão
-    // Se for chamada pelo novo botão, usa o 'config' passado (botGameConfig)
     const settings = config || botGameConfig.value;
-
-    console.log("A iniciar jogo contra Bot com:", settings);
-    
-    router.push({ 
-        name: 'Game', // O nome que deste à rota no router/index.js
-        query: { 
-            mode: 'bot', 
-            type: settings.type, 
-            isMatch: settings.isMatch ? 'true' : 'false'
-        } 
-    });
+    router.push({ name: 'Game', query: { mode: 'bot', type: settings.type, isMatch: settings.isMatch ? 'true' : 'false' } });
 };
 
 const joinGame = (game) => {
+    const userBalance = authStore.currentUser?.coins_balance ?? 0;
+    if (userBalance < game.stake) {
+        toast.error("Saldo insuficiente.")
+        return
+    }
     socketStore.emitJoinGame(game)
 }
 
-const startGame = (game) => {
-    gameStore.multiplayerGame = game
-    router.push({ name: 'multiplayer' })
-}
-
 const cancelGame = (game) => {
-    // Chamar socket ou store para remover o jogo da fila
+    gameStore.cancelGame(game.id)
+    toast.info("Mesa cancelada.")
 }
 
 const refreshLobby = () => {
@@ -398,24 +386,19 @@ const refreshLobby = () => {
 }
 
 onMounted(() => {
-    //socketStore.emitGetGames()
+    socketStore.emitGetGames()
 })
 </script>
 
 <style scoped>
-.animate-pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+@keyframes shimmer {
+    100% { transform: translateX(100%); }
 }
-
+.animate-pulse-slow {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
 @keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.8;
-    }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.9; }
 }
 </style>

@@ -13,6 +13,10 @@ export const useGameStore = defineStore('game', () => {
   // 1. ESTADO DO JOGO (BISCA LOCAL & BOT)
   // ------------------------------------------------------------------------
   
+  // Flag para distinguir Online vs Bot
+  const isMultiplayer = ref(false)
+  const multiplayerGameId = ref(null)
+
   const deck = ref([])
   const myHand = ref([]) 
   const botHand = ref([]) 
@@ -97,11 +101,11 @@ export const useGameStore = defineStore('game', () => {
   // --- INICIAR JOGO / PARTIDA ---
 
   const startGameLocal = (cardsPerHand = 3, matchMode = false) => {
+    isMultiplayer.value = false // Garante que estamos em modo local
     resetRoundState()
     
     // Configurações da Partida
     if (matchMode) {
-        // Se for um NOVO jogo de uma partida que já existe, não zeramos as marcas
         if (!isMatchMode.value) {
             isMatchMode.value = true
             myMarks.value = 0
@@ -109,7 +113,6 @@ export const useGameStore = defineStore('game', () => {
             matchWinner.value = null
         }
     } else {
-        // Jogo único
         isMatchMode.value = false
         myMarks.value = 0
         opponentMarks.value = 0
@@ -123,7 +126,11 @@ export const useGameStore = defineStore('game', () => {
   const nextGameInMatch = (cardsPerHand = 3) => {
     if (!isMatchMode.value) return
     resetRoundState()
-    dealCards(cardsPerHand)
+    
+    // Se for local, dá cartas. Se for online, o servidor é que dá.
+    if (!isMultiplayer.value) {
+        dealCards(cardsPerHand)
+    }
     toast.info(`Iniciando jogo. Placar: ${myMarks.value} - ${opponentMarks.value}`)
   }
 
@@ -140,6 +147,11 @@ export const useGameStore = defineStore('game', () => {
   }
 
   const leaveGame = () => {
+    // Se estiver online, avisar servidor
+    if (isMultiplayer.value && multiplayerGameId.value) {
+        socket.emit('leave-game', { gameId: multiplayerGameId.value })
+    }
+
     deck.value = []
     myHand.value = []
     botHand.value = []
@@ -147,6 +159,8 @@ export const useGameStore = defineStore('game', () => {
     isMatchMode.value = false
     myMarks.value = 0
     opponentMarks.value = 0
+    isMultiplayer.value = false
+    multiplayerGameId.value = null
  }
 
   // --- ORDENAÇÃO DA MÃO ---
@@ -179,6 +193,13 @@ export const useGameStore = defineStore('game', () => {
   const playCard = (card) => {
     if (currentTurn.value !== 'me' || tableCards.value.length >= 2 || isGameComplete.value) return 
 
+    // --- ALTERAÇÃO IMPORTANTE: Se for Online, envia para o servidor e PARA ---
+    if (isMultiplayer.value) {
+        socket.emit('play-card', { gameId: multiplayerGameId.value, card: card })
+        return // Não executamos a lógica local
+    }
+
+    // --- LÓGICA LOCAL (BOT) ---
     const index = myHand.value.findIndex(c => c.id === card.id)
     if (index !== -1) {
       const cardToPlay = myHand.value[index]
@@ -197,7 +218,7 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
-  // Jogada do Bot
+  // Jogada do Bot (Apenas Local)
   const botPlay = () => {
     if (botHand.value.length === 0) return
 
@@ -214,32 +235,18 @@ export const useGameStore = defineStore('game', () => {
         }
     }
 
-    // 2. Decidir Carta
+    // 2. Decidir Carta (Lógica simples mantida)
     if (!leadCard) {
-        // Lead: Jogar a mais fraca (não trunfo preferencialmente)
         const sorted = [...playableCards].sort((a, b) => a.power - b.power)
         const nonTrumps = sorted.filter(c => c.suit !== trump.suit)
-        
         cardToPlay = nonTrumps.length > 0 ? nonTrumps[0] : sorted[0]
-
     } else {
-        // Follow: Tentar ganhar
-        const winningSameSuit = playableCards.filter(c => 
-            c.suit === leadCard.suit && c.power > leadCard.power
-        ).sort((a, b) => a.power - b.power)
+        const winningSameSuit = playableCards.filter(c => c.suit === leadCard.suit && c.power > leadCard.power).sort((a, b) => a.power - b.power)
+        const winningTrump = playableCards.filter(c => c.suit === trump.suit).sort((a, b) => a.power - b.power)
 
-        const winningTrump = playableCards.filter(c => 
-            c.suit === trump.suit
-        ).sort((a, b) => a.power - b.power)
-
-        if (winningSameSuit.length > 0) {
-            cardToPlay = winningSameSuit[0] 
-        } 
-        else if (leadCard.suit !== trump.suit && winningTrump.length > 0) {
-            cardToPlay = winningTrump[0]
-        } 
+        if (winningSameSuit.length > 0) cardToPlay = winningSameSuit[0] 
+        else if (leadCard.suit !== trump.suit && winningTrump.length > 0) cardToPlay = winningTrump[0] 
         else {
-            // Lixo (Menos pontos -> Menos poder)
             const trashOptions = [...playableCards].sort((a, b) => {
                 if (a.value !== b.value) return a.value - b.value 
                 return a.power - b.power 
@@ -263,7 +270,7 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
-  // Resolver Vaza
+  // Resolver Vaza (Apenas Local)
   const resolveTrick = () => {
     if (tableCards.value.length < 2) return
 
@@ -325,10 +332,10 @@ export const useGameStore = defineStore('game', () => {
   // ------------------------------------------------------------------------
 
   const calculateMarks = (points) => {
-    if (points === 120) return 4 // Bandeira
-    if (points >= 91) return 2   // Capote
-    if (points >= 61) return 1   // Jogo Simples
-    return 0 // Derrota ou Empate
+    if (points === 120) return 4 
+    if (points >= 91) return 2   
+    if (points >= 61) return 1   
+    return 0 
   }
 
   const processEndGame = () => {
@@ -336,7 +343,6 @@ export const useGameStore = defineStore('game', () => {
     let earnedMarks = 0
     let roundWinner = null
 
-    // Calcular Marcas
     if (myPoints.value > opponentPoints.value) {
         earnedMarks = calculateMarks(myPoints.value)
         roundWinner = 'me'
@@ -348,7 +354,6 @@ export const useGameStore = defineStore('game', () => {
         if (isMatchMode.value) opponentMarks.value += earnedMarks
     }
 
-    // Verificar Vencedor da Partida
     if (isMatchMode.value) {
         if (myMarks.value >= 4) {
             matchWinner.value = 'me'
@@ -381,12 +386,11 @@ export const useGameStore = defineStore('game', () => {
       toast.success('Jogo guardado no histórico!')
     } catch (e) {
       console.error(e)
-      toast.error('Erro ao guardar jogo.')
     }
   }
 
   watch(isGameComplete, (val) => {
-    if (val) {
+    if (val && !isMultiplayer.value) { // Só salva automaticamente se for Local
       setTimeout(() => {
         processEndGame()
       }, 1000)
@@ -394,13 +398,13 @@ export const useGameStore = defineStore('game', () => {
   })
 
   // ------------------------------------------------------------------------
-  // 5. MULTIPLAYER / LOBBY (COMPATIBILIDADE)
+  // 5. MULTIPLAYER / LOBBY (ATUALIZADO PARA LOBBYPAGE.VUE)
   // ------------------------------------------------------------------------
   
   const games = ref([]) 
-  const multiplayerGame = ref({})
 
-  const createGame = (difficulty = 'medium') => {
+  // --- AÇÃO 1: CRIAR JOGO (AGORA ACEITA OBJETO) ---
+  const createGame = (config) => {
     if (!authStore.currentUser) {
       toast.error('Login necessário')
       return
@@ -409,40 +413,64 @@ export const useGameStore = defineStore('game', () => {
       toast.error('Sem conexão ao servidor.')
       return
     }
-    socket.emit('create-game', difficulty)
+    
+    // Config pode ser apenas string (retrocompatibilidade) ou objeto (novo lobby)
+    // Se vier do novo lobby, config é { type: '3', isMatch: false, stake: 2 }
+    socket.emit('create-game', config)
+  }
+
+  // --- AÇÃO 2: CANCELAR JOGO ---
+  const cancelGame = (gameId) => {
+    if (!socket || !socket.connected) return
+    socket.emit('cancel-game', { gameId })
+  }
+
+  // --- AÇÃO 3: JUNTAR JOGO ---
+  const joinGame = (gameId) => {
+    if (!socket || !socket.connected) return
+    // Validação extra de saldo deve ser feita na UI ou backend, mas aqui é o trigger
+    socket.emit('join-game', { gameId })
   }
 
   const setGames = (newGames) => {
     games.value = newGames
   }
 
-  const setMultiplayerGame = (game) => {
-    multiplayerGame.value = game
+  // Função para configurar o estado quando o jogo multiplayer começa
+  const startMultiplayerGame = (gameData) => {
+      isMultiplayer.value = true
+      multiplayerGameId.value = gameData.id
+      resetRoundState()
+      // Aqui carregarias a mão inicial vinda do servidor, etc.
   }
 
   const myGames = computed(() => {
     if (!authStore.currentUser) return []
-    return games.value.filter((game) => game.creator == authStore.currentUser.id)
+    // Filtra pelos jogos criados pelo user atual
+    return games.value.filter((game) => game.creator == authStore.currentUser.id || game.creator == authStore.currentUser.nickname)
   })
 
   const availableGames = computed(() => {
     if (!authStore.currentUser) return []
-    return games.value.filter((game) => game.creator != authStore.currentUser.id)
+    // Filtra jogos que NÃO são meus
+    return games.value.filter((game) => game.creator != authStore.currentUser.id && game.creator != authStore.currentUser.nickname)
   })
 
   return {
-    // Bisca State
+    // State
+    isMultiplayer, multiplayerGameId,
     deck, myHand, botHand, trumpCard, tableCards,
     myPoints, opponentPoints, isGameComplete, currentTurn,
-    
-    // Match State
     isMatchMode, myMarks, opponentMarks, matchWinner,
+    games, 
 
-    // Actions
-    startGameLocal, nextGameInMatch, leaveGame, playCard, botPlay,
+    // Actions Game
+    startGameLocal, nextGameInMatch, leaveGame, playCard, botPlay, saveGame,
 
-    // Multiplayer State & Actions
-    games, createGame, setGames, myGames, availableGames, 
-    multiplayerGame, setMultiplayerGame, saveGame
+    // Actions Lobby
+    createGame, cancelGame, joinGame, setGames, startMultiplayerGame,
+    
+    // Getters
+    myGames, availableGames
   }
 })
