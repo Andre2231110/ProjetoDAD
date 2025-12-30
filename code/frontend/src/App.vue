@@ -8,11 +8,8 @@
       </RouterLink>
 
       <!-- Botão Lobby -->
-      <RouterLink
-        v-if="authStore.isLoggedIn"
-        to="/lobby"
-        class="ml-6 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
-      >
+      <RouterLink v-if="authStore.isLoggedIn" to="/lobby"
+        class="ml-6 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
         🃏 Jogar
       </RouterLink>
     </div>
@@ -21,35 +18,24 @@
     <div class="flex items-center gap-4">
       <div v-if="authStore.isLoggedIn" class="flex items-center gap-2">
         <!-- Avatar -->
-        <img
-          :src="authStore.currentUser?.profile_image || defaultAvatar"
-          alt="Avatar"
-          class="w-10 h-10 rounded-full border-2 border-indigo-600"
-        />
+        <img :src="computedAvatar" alt="Avatar"
+          class="w-10 h-10 rounded-full border-2 border-indigo-600 object-cover" />
 
         <!-- Nome do utilizador -->
-        <RouterLink
-          to="/profile"
-          class="font-medium text-slate-700 hover:text-indigo-600 transition-colors"
-        >
+        <RouterLink to="/profile" class="font-medium text-slate-700 hover:text-indigo-600 transition-colors">
           {{ authStore.currentUser?.name }}
         </RouterLink>
 
         <!-- Logout -->
-        <button
-          @click="handleLogout"
-          class="ml-4 px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-        >
+        <button @click="handleLogout"
+          class="ml-4 px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
           Logout
         </button>
       </div>
 
       <!-- Login caso não esteja logado -->
-      <RouterLink
-        v-else
-        to="/login"
-        class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-      >
+      <RouterLink v-else to="/login"
+        class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
         Login
       </RouterLink>
     </div>
@@ -64,15 +50,17 @@
 import { RouterLink, RouterView } from 'vue-router'
 import { toast } from 'vue-sonner'
 import 'vue-sonner/style.css'
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { Toaster } from '@/components/ui/sonner'
 import { useAuthStore } from '@/stores/auth'
 import { useAPIStore } from '@/stores/api'
 
+
 const authStore = useAuthStore()
 const apiStore = useAPIStore()
 
-const defaultAvatar = '/default.jpg'
+const API_URL = 'http://127.0.0.1:8000'
+
 
 // Carregar token ao montar a app
 onMounted(async () => {
@@ -82,6 +70,14 @@ onMounted(async () => {
     await authStore.getUser()
   }
 })
+
+const computedAvatar = computed(() => {
+  const avatar = authStore.currentUser?.current_avatar
+  if (!avatar) return '/default.jpg'
+  return `${API_URL}/storage/${avatar}`
+})
+
+
 
 // Função de logout
 const handleLogout = () => {

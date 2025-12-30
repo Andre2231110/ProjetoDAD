@@ -11,7 +11,7 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -20,11 +20,11 @@ class UpdateUserRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules() {
-    return [
-        'name' => 'sometimes|string|max:255',
-        'nickname' => 'sometimes|string|max:20|unique:users,nickname,'.$this->user()->id,
-        'email' => 'sometimes|email|unique:users,email,'.$this->user()->id,
-        'password' => 'sometimes|min:3', 
-    ];
-}
+        return [
+            'name' => 'sometimes|string|max:255',
+            'nickname' => 'sometimes|string|max:20|unique:users,nickname,'.$this->user()->id,
+            'email' => 'sometimes|email|unique:users,email,'.$this->user()->id,
+            'password' => 'sometimes|min:3',
+        ];
+    }
 }

@@ -1,9 +1,9 @@
 <template>
   <Toaster richColors />
-  <div class="flex min-h-screen items-center justify-center">
+  <div class="flex min-h-screen items-center justify-center ">
 
     <!-- Conteúdo principal -->
-    <main class="flex-1 flex flex-col justify-center items-center text-center px-4 pt-28">
+    <main class="flex-1 flex flex-col justify-center items-center text-center px-4 pt-28 ">
       <h1 class="text-5xl font-bold text-indigo-700 mb-6 animate-bounce">Bem-vindo à Bisca!</h1>
       <p class="text-lg text-slate-600 mb-8">O jogo clássico de cartas, agora online.</p>
 
@@ -12,7 +12,7 @@
         <div v-for="(simbolo, index) in ['♠️', '♥️', '♣️', '♦️']" :key="index"
           class="w-20 h-28 bg-white rounded-lg shadow-lg flex items-center justify-center text-3xl font-bold text-indigo-600 transform transition-transform duration-300 hover:-translate-y-3 hover:rotate-3 cursor-pointer">
           {{ simbolo }}
-        </div>  
+        </div>
       </div>
 
       <!-- Botões de ação -->

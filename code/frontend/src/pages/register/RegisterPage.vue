@@ -1,6 +1,6 @@
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-    <div class="w-full max-w-md space-y-8">
+  <div class="flex min-h-screen items-center justify-center ">
+    <div class="w-full max-w-md space-y-8 shadow-lg p-8 rounded-lg bg-white">
       <div>
         <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
           Create your account
@@ -11,7 +11,7 @@
       </div>
 
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
-        <div class="space-y-4 rounded-md shadow-sm">
+        <div class="space-y-4 rounded-md ">
 
           <div>
             <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
