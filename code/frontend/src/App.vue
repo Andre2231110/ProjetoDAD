@@ -68,7 +68,9 @@ import { onMounted } from 'vue'
 import { Toaster } from '@/components/ui/sonner'
 import { useAuthStore } from '@/stores/auth'
 import { useAPIStore } from '@/stores/api'
+import { useSocketStore } from '@/stores/socket'
 
+const socketStore = useSocketStore()
 const authStore = useAuthStore()
 const apiStore = useAPIStore()
 
@@ -81,6 +83,8 @@ onMounted(async () => {
     apiStore.token = savedToken
     await authStore.getUser()
   }
+  socketStore.handleConnection()
+  socketStore.handleGameEvents()
 })
 
 // Função de logout
