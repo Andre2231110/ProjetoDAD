@@ -377,6 +377,7 @@ const joinGame = (game) => {
 }
 
 const cancelGame = (game) => {
+    console.log(game)
     gameStore.cancelGame(game.id)
     toast.info("Mesa cancelada.")
 }

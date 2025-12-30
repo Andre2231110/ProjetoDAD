@@ -146,6 +146,8 @@ export const joinGame = (gameId, user) => {
 
 // Remove um jogo do lobby (quando o criador cancela)
 export const removeGame = (gameId, userId) => {
+    
+
     const index = games.findIndex(g => g.id == gameId)
     if (index !== -1) {
         // Só o criador pode remover

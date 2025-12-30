@@ -65,6 +65,7 @@ export const handleGameEvents = (io, socket) => {
     
     // --- 4. CANCELAR JOGO ---
     socket.on("cancel-game", (payload) => {
+        
         const user = getUser(socket.id)
         if (!user) return
 
