@@ -134,7 +134,7 @@ class UsersSeeder extends Seeder
             // ----------------------------------------------------------------------
             // ✨ CORREÇÃO AQUI: Limpar o email antes de comparar ✨
             // ----------------------------------------------------------------------
-            
+
             // O trim() remove espaços invisíveis antes e depois do email
             $emailLimpo = trim($user['email']);
 
@@ -172,7 +172,7 @@ class UsersSeeder extends Seeder
 
             // --- DEFAULTS ---
             $usersAdded[$key]['current_deck'] = 'deck1_preview';
-            $usersAdded[$key]['current_avatar'] = 'default_avatar';
+            $usersAdded[$key]['current_avatar'] = 'default.jpg';
             // ----------------------------------------------------------------------
 
             $usersAdded[$key]['deleted_at'] = null;
@@ -228,7 +228,11 @@ class UsersSeeder extends Seeder
                 $originalFilename = basename($originalFilename);
                 $newFileName = $this->copyFileToStorage('photos', $originalFilename, 'photos_avatars', $user->id);
                 $user->photo_avatar_filename = $newFileName;
-                DB::table('users')->where('id', $user->id)->update(['photo_avatar_filename' => $user->photo_avatar_filename]);
+                $user->current_avatar = $newFileName;
+                DB::table('users')->where('id', $user->id)->update([
+                    'photo_avatar_filename' => $user->photo_avatar_filename,
+                    'current_avatar' => $user->current_avatar
+                ]);
                 $i++;
                 if ($i % 10 == 0) {
                     $this->command->line("User photo $i/$total copied");

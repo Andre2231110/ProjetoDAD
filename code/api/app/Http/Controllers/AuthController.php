@@ -54,9 +54,13 @@ class AuthController extends Controller
             ]);
 
             if ($request->hasFile('avatar')) {
-                $path                        = $request->file('avatar')->store('photos_avatars', 'public');
-                $user->photo_avatar_filename = $path;
-                $user->current_avatar        = $path; // define como avatar atual
+                $path = $request->file('avatar')->store('photos_avatars', 'public');
+
+                // só o nome do ficheiro
+                $filename = basename($path);
+
+                $user->photo_avatar_filename = $filename;
+                $user->current_avatar        = $filename;
                 $user->save();
             }
 
@@ -74,7 +78,6 @@ class AuthController extends Controller
             ], 500);
         }
     }
-
 
     public function logout(Request $request)
     {

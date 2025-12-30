@@ -92,7 +92,7 @@ onMounted(async () => {
 const computedAvatar = computed(() => {
   const avatar = authStore.currentUser?.current_avatar
   if (!avatar) return '/default.jpg'
-  return `${API_URL}/storage/${avatar}`
+  return `${API_URL}/storage/photos_avatars/${avatar}`
 })
 
 
