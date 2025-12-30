@@ -2,11 +2,13 @@ import { defineStore } from 'pinia'
 import { ref, computed, inject, watch } from 'vue'
 import { useAPIStore } from './api'
 import { useAuthStore } from './auth'
+import { useSocketStore } from './socket'
 import { toast } from 'vue-sonner'
 
 export const useGameStore = defineStore('game', () => {
   const apiStore = useAPIStore()
   const authStore = useAuthStore()
+  const socketStore = useSocketStore()
   const socket = inject('socket')
 
   // ------------------------------------------------------------------------
@@ -194,9 +196,12 @@ export const useGameStore = defineStore('game', () => {
     if (currentTurn.value !== 'me' || tableCards.value.length >= 2 || isGameComplete.value) return 
 
     // --- ALTERAÇÃO IMPORTANTE: Se for Online, envia para o servidor e PARA ---
+    // 1. SE FOR MULTIPLAYER
     if (isMultiplayer.value) {
-        socket.emit('play-card', { gameId: multiplayerGameId.value, card: card })
-        return // Não executamos a lógica local
+
+        
+        socketStore.emitPlayCard(multiplayerGameId.value, card)
+        return
     }
 
     // --- LÓGICA LOCAL (BOT) ---
@@ -438,10 +443,82 @@ export const useGameStore = defineStore('game', () => {
 
   // Função para configurar o estado quando o jogo multiplayer começa
   const startMultiplayerGame = (gameData) => {
+      console.log("A configurar tabuleiro multiplayer...", gameData)
+
+      // 1. Configurações Básicas
       isMultiplayer.value = true
       multiplayerGameId.value = gameData.id
-      resetRoundState()
-      // Aqui carregarias a mão inicial vinda do servidor, etc.
+      isMatchMode.value = gameData.isMatch
+      beganAt.value = new Date()
+      endedAt.value = undefined // Garante que não mostra ecrã final
+      
+      myPoints.value = 0
+      opponentPoints.value = 0
+      tableCards.value = []
+
+      // 2. Identificar quem sou eu (Player 1 ou Player 2)
+      const myId = authStore.currentUser.id
+      // Nota: O backend envia player1 como objeto ou ID. Ajusta conforme o teu backend.
+      // Assumindo que gameData.player1.id ou gameData.player1 é o ID:
+      const p1Id = gameData.player1.id || gameData.player1 
+      const amIPlayer1 = (p1Id == myId)
+
+      // 3. Distribuir Cartas (Mapeamento Backend -> Frontend Store)
+      if (amIPlayer1) {
+          myHand.value = gameData.p1Hand
+          botHand.value = gameData.p2Hand // No multiplayer, 'botHand' representa o oponente
+      } else {
+          myHand.value = gameData.p2Hand
+          botHand.value = gameData.p1Hand
+      }
+
+      // 4. Configurar Mesa
+      deck.value = gameData.deck
+      trumpCard.value = gameData.trump
+      
+      // 5. Definir Turno
+      // O backend envia 'turn' como o ID do user. Convertemos para 'me' ou 'bot'
+      if (gameData.turn == myId) {
+          currentTurn.value = 'me'
+          toast.success("É a tua vez de jogar!")
+      } else {
+          currentTurn.value = 'bot' // 'bot' aqui significa Oponente Humano
+          toast.info("Vez do oponente...")
+      }
+  }
+  const updateMultiplayerState = (gameData) => {
+      // Atualiza Mão, Mesa, Pontos, Turno
+      const myId = authStore.currentUser.id
+      const p1Id = gameData.player1.id || gameData.player1
+      const amIPlayer1 = (p1Id == myId)
+
+      if (amIPlayer1) {
+          myHand.value = gameData.p1Hand
+          botHand.value = gameData.p2Hand // Cartas do oponente
+      } else {
+          myHand.value = gameData.p2Hand
+          botHand.value = gameData.p1Hand
+      }
+
+      tableCards.value = gameData.table
+      deck.value = gameData.deck
+      
+      // Atualizar Pontos
+      myPoints.value = amIPlayer1 ? gameData.p1Points : gameData.p2Points
+      opponentPoints.value = amIPlayer1 ? gameData.p2Points : gameData.p1Points
+
+      // Atualizar Turno
+      if (gameData.turn == myId) {
+          currentTurn.value = 'me'
+      } else {
+          currentTurn.value = 'bot'
+      }
+      
+      // Verificar se o jogo acabou
+      if (gameData.status === 'Ended') {
+          isGameComplete.value = true // Isto dispara o popup final
+          // Podes adicionar lógica para mostrar quem ganhou
+      }
   }
 
   const myGames = computed(() => {
@@ -468,7 +545,7 @@ export const useGameStore = defineStore('game', () => {
     startGameLocal, nextGameInMatch, leaveGame, playCard, botPlay, saveGame,
 
     // Actions Lobby
-    createGame, cancelGame, joinGame, setGames, startMultiplayerGame,
+    createGame, cancelGame, joinGame, setGames, startMultiplayerGame,updateMultiplayerState,
     
     // Getters
     myGames, availableGames
