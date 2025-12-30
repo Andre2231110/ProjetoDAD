@@ -8,6 +8,8 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\MatchController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
+use App\Policies\UserPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +21,10 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->delete('/profile/delete', [ProfileController::class, 'destroy']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/update', [ProfileController::class, 'update']);
+});
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/admin/create-user', [AdminController::class, 'createUser']);
+    Route::get('/admin/users', [AdminController::class, 'listAllUsers']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
