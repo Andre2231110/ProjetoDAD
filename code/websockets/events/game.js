@@ -1,7 +1,7 @@
 import { getUser } from "../state/connection.js"
 // Importamos as funções da Bisca que criámos no step anterior
 // Repara que removemos flipCard e clearFlippedCard
-import { createGame, getGames, joinGame, removeGame } from "../state/game.js"
+import { createGame, getGames, joinGame, removeGame, playCard, resignGame, startTurnTimer, clearTurnTimer } from "../state/game.js"
 import { server } from "../server.js"
 
 export const handleGameEvents = (io, socket) => {
@@ -34,6 +34,16 @@ export const handleGameEvents = (io, socket) => {
     socket.on("get-games", () => {
         socket.emit("games-list", getGames())
     })
+
+    const handleTimeout = (gameId, loserId) => {
+        // Usa a mesma lógica de desistência
+        const game = resignGame(gameId, loserId)
+        if (game) {
+            // Adiciona uma flag para o frontend saber que foi por tempo
+            game.timeout = true 
+            io.to(`game-${gameId}`).emit("game-update", game)
+        }
+    }
     
     // --- 3. JUNTAR A UM JOGO ---
     socket.on("join-game", (payload) => {
@@ -57,6 +67,8 @@ export const handleGameEvents = (io, socket) => {
             // 2. AVISA A SALA que o jogo começou e envia os dados (cartas, trunfo, etc)
             // Isto fará o frontend redirecionar para o tabuleiro
             io.to(`game-${game.id}`).emit("game-started", game)
+
+            startTurnTimer(game.id, () => handleTimeout(game.id, game.turn))
         } else {
             // Envia erro apenas para quem tentou entrar
             socket.emit("error", { message: "Não foi possível entrar no jogo (Cheio ou Cancelado)." })
@@ -65,6 +77,7 @@ export const handleGameEvents = (io, socket) => {
     
     // --- 4. CANCELAR JOGO ---
     socket.on("cancel-game", (payload) => {
+        
         const user = getUser(socket.id)
         if (!user) return
 
@@ -79,10 +92,41 @@ export const handleGameEvents = (io, socket) => {
 
     // --- 5. SAIR DO JOGO (Leave) ---
     socket.on("leave-game", (payload) => {
+        const user = getUser(socket.id)
+        if (!user) return
+
         const gameId = payload.gameId
+
         if(gameId) {
-            socket.leave(`game-${gameId}`)
-            // Aqui poderias adicionar lógica para dar vitória ao adversário por desistência
+            // Processa a desistência (atribui pontos e fecha jogo)
+            const game = resignGame(gameId, user.id)
+
+            if (game) {
+                clearTurnTimer(gameId)
+                io.to(`game-${gameId}`).emit("game-update", game)
+
+            }
+        }
+    })
+
+    socket.on("play-card", (payload) => {
+        const user = getUser(socket.id)
+        if (!user) return
+
+        // Executa a lógica
+        const game = playCard(payload.gameId, user.id, payload.card)
+        
+        if (game) {
+            // Envia o estado atualizado para AMBOS os jogadores
+            io.to(`game-${game.id}`).emit("game-update", game)
+
+            if (game.status === 'Playing') {
+                // Se o jogo continua, inicia timer para o PRÓXIMO jogador (game.turn)
+                startTurnTimer(game.id, () => handleTimeout(game.id, game.turn))
+            } else {
+                // Se acabou, garante que não há timers
+                clearTurnTimer(game.id)
+            }
         }
     })
 }
