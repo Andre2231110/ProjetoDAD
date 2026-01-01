@@ -1,7 +1,7 @@
 import { getUser } from "../state/connection.js"
 // Importamos as funções da Bisca que criámos no step anterior
 // Repara que removemos flipCard e clearFlippedCard
-import { createGame, getGames, joinGame, removeGame, playCard, resignGame, startTurnTimer, clearTurnTimer } from "../state/game.js"
+import { createGame, getGames, joinGame, removeGame, playCard, resignGame, startTurnTimer, clearTurnTimer,prepareNextGame } from "../state/game.js"
 import { server } from "../server.js"
 
 export const handleGameEvents = (io, socket) => {
@@ -127,6 +127,19 @@ export const handleGameEvents = (io, socket) => {
                 // Se acabou, garante que não há timers
                 clearTurnTimer(game.id)
             }
+        }
+    })
+
+    socket.on("request-next-game", (payload) => {
+        const gameId = payload.gameId
+        
+        // Prepara o tabuleiro para a nova ronda
+        const game = prepareNextGame(gameId)
+        
+        if (game) {
+            // Emite 'game-started' novamente para reiniciar o UI do cliente
+            // (Esconde o modal, mostra as novas cartas)
+            io.to(`game-${gameId}`).emit("game-started", game)
         }
     })
 }

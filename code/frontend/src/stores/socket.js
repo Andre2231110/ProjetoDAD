@@ -133,6 +133,11 @@ export const useSocketStore = defineStore('socket', () => {
       socket.emit('play-card', { gameId, card })
   }
 
+  const emitRequestNextGame = (gameId) => {
+      console.log(`[Socket] Pedindo próximo jogo para match ${gameId}`)
+      socket.emit('request-next-game', { gameId })
+  }
+
   return {
     joined,
     handleConnection,
@@ -144,6 +149,7 @@ export const useSocketStore = defineStore('socket', () => {
     emitJoinGame,
     emitCancelGame,
     emitLeaveGame,
-    emitPlayCard
+    emitPlayCard,
+    emitRequestNextGame
   }
 })
