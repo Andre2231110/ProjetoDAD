@@ -266,14 +266,165 @@ export const useGameStore = defineStore('game', () => {
   }
   
   // Bot Play & Resolve Trick (Local)
-  const botPlay = () => { /* ... igual ao teu código ... */ 
-      // Lógica simples de jogar carta
-      // ...
-      // No final chama resolveTrick()
+  const botPlay = () => {
+    if (isGameComplete.value || currentTurn.value !== 'bot') return
+
+    let cardToPlay = null
+    const playerCard = tableCards.value[0] // Carta que o jogador jogou
+    const isStockEmpty = deck.value.length === 0
+
+    // Se o bot for o SEGUNDO a jogar (o jogador liderou a vaza)
+    if (playerCard) {
+      const trumpSuit = trumpCard.value.suit
+      
+      // Filtrar cartas que podem ganhar a vaza
+      const winningCards = botHand.value.filter(c => {
+        if (c.suit === playerCard.suit) {
+          return c.power > playerCard.power
+        }
+        return c.suit === trumpSuit && playerCard.suit !== trumpSuit
+      })
+
+      // Regra de "Assistir" (Seguir o naipe) se o monte estiver vazio (Fase Final)
+      if (isStockEmpty) {
+        const sameSuitCards = botHand.value.filter(c => c.suit === playerCard.suit)
+        if (sameSuitCards.length > 0) {
+          // Se tem o naipe, tem de seguir. Tenta ganhar com a menor carta possível que ganhe.
+          const possibleWinners = sameSuitCards.filter(c => c.power > playerCard.power)
+          cardToPlay = possibleWinners.length > 0 
+            ? possibleWinners.sort((a,b) => a.power - b.power)[0] // Menor das que ganham
+            : sameSuitCards.sort((a,b) => a.power - b.power)[0]    // Menor das que perdem
+        }
+      }
+
+      // Se ainda não escolheu carta (Fase 1 ou não tem o naipe na Fase Final)
+      if (!cardToPlay) {
+        if (winningCards.length > 0) {
+          // Tenta ganhar com a carta "mais barata" (menor power entre as vencedoras)
+          cardToPlay = winningCards.sort((a, b) => a.power - b.power)[0]
+        } else {
+          // Não consegue ganhar, joga a carta mais baixa da mão
+          cardToPlay = botHand.value.sort((a, b) => a.power - b.power)[0]
+        }
+      }
+    } else {
+      // Se o bot for o PRIMEIRO a jogar (liderar a vaza)
+      // Estratégia simples: joga a carta mais baixa que não seja trunfo (se possível)
+      const nonTrumps = botHand.value.filter(c => c.suit !== trumpCard.value.suit)
+      cardToPlay = nonTrumps.length > 0 
+        ? nonTrumps.sort((a,b) => a.power - b.power)[0]
+        : botHand.value.sort((a,b) => a.power - b.power)[0]
+    }
+
+    // Executar a jogada
+    const index = botHand.value.findIndex(c => c.id === cardToPlay.id)
+    cardToPlay.playedBy = 'bot'
+    botHand.value.splice(index, 1)
+    tableCards.value.push(cardToPlay)
+
+    // Se o bot foi o primeiro, passa o turno para o player. 
+    // Se foi o segundo, resolve a vaza.
+    if (tableCards.value.length === 1) {
+      currentTurn.value = 'me'
+    } else {
+      currentTurn.value = 'processing'
+      setTimeout(() => resolveTrick(), 1000)
+    }
   }
-  const resolveTrick = () => { /* ... igual ao teu código ... */ 
-      // Lógica de quem ganha a vaza localmente
-      // ...
+
+  const resolveTrick = () => {
+    const [c1, c2] = tableCards.value
+    const trumpSuit = trumpCard.value.suit
+    let winner = 'me'
+
+    // Lógica de quem ganha a vaza (conforme secção 2.4 do PDF)
+    if (c1.suit === c2.suit) {
+      winner = c1.power > c2.power ? c1.playedBy : c2.playedBy
+    } else if (c2.suit === trumpSuit) {
+      winner = c2.playedBy
+    } else if (c1.suit === trumpSuit) {
+      winner = c1.playedBy
+    } else {
+      winner = c1.playedBy
+    }
+
+    // Calcular pontos da vaza
+    const points = c1.value + c2.value
+    if (winner === 'me') {
+      myPoints.value += points
+    } else {
+      opponentPoints.value += points
+    }
+
+    // Limpar mesa e dar cartas (se houver no deck)
+    tableCards.value = []
+    
+    if (deck.value.length > 0) {
+      // O vencedor compra primeiro
+      if (winner === 'me') {
+        myHand.value.push(deck.value.shift())
+        botHand.value.push(deck.value.shift())
+      } else {
+        botHand.value.push(deck.value.shift())
+        myHand.value.push(deck.value.shift())
+      }
+      sortHand(myHand.value)
+    }
+
+    // Definir próximo turno
+    currentTurn.value = (winner === 'me') ? 'me' : 'bot'
+
+    // Verificar se o jogo acabou
+    if (myHand.value.length === 0 && botHand.value.length === 0) {
+      finalizeGameLocal()
+    } else if (currentTurn.value === 'bot') {
+      setTimeout(() => botPlay(), 1000)
+    }
+  }
+
+  const finalizeGameLocal = () => {
+    endedAt.value = new Date()
+    
+    // Se não estivermos em modo Match, não contamos marcas
+    if (!isMatchMode.value) {
+      if (myPoints.value >= 61) toast.success("Ganhaste o jogo!")
+      else if (myPoints.value < 60) toast.error("Perdeste o jogo.")
+      else toast.info("Empate!")
+      return
+    }
+
+    // Lógica de Marcas (Conforme Secção 5 do PDF)
+    let marksWon = 0
+    if (myPoints.value >= 61) {
+      // 120 pts = Bandeira (Ganha a partida/4 marcas)
+      if (myPoints.value === 120) marksWon = 4 
+      // 91-119 pts = Capote (2 marcas)
+      else if (myPoints.value >= 91) marksWon = 2 
+      // 61-90 pts = Risca/Moca (1 marca)
+      else marksWon = 1 
+      
+      myMarks.value += marksWon
+      toast.success(`Ganhaste o jogo e recebeste ${marksWon} marca(s)!`)
+    } 
+    else if (opponentPoints.value >= 61) {
+      if (opponentPoints.value === 120) marksWon = 4
+      else if (opponentPoints.value >= 91) marksWon = 2
+      else marksWon = 1
+      
+      opponentMarks.value += marksWon
+      toast.error(`O Bot ganhou o jogo e recebeu ${marksWon} marca(s)!`)
+    } else {
+      toast.info("Empate! Ninguém ganha marcas.")
+    }
+
+    // Verificar se alguém ganhou a partida (Match) - 4 marcas
+    if (myMarks.value >= 4) {
+      matchWinner.value = 'me'
+      toast.success("VITÓRIA TOTAL! Ganhaste a partida!")
+    } else if (opponentMarks.value >= 4) {
+      matchWinner.value = 'bot'
+      toast.error("DERROTA! O Bot ganhou a partida.")
+    }
   }
 
   // ------------------------------------------------------------------------
