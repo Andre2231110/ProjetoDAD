@@ -76,6 +76,27 @@ export const useAPIStore = defineStore('api', () => {
     return api.delete('/profile/delete', { data: { password } })
   }
 
+  const postCreateAdmin = async (adminData) => {
+  if (!token.value) throw new Error('Usuário não autenticado');
+
+  // FormData para enviar avatar + dados
+  const data = new FormData();
+  Object.keys(adminData).forEach((key) => {
+    if (adminData[key] !== null && adminData[key] !== undefined) {
+      data.append(key, adminData[key]);
+    }
+  });
+
+  const response = await api.post('/admin/create-user', data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      Authorization: `Bearer ${token.value}`,
+    },
+  });
+
+  return response.data; // { user: {...} }
+};
+
   // -----------------------------
   // Jogos
   // -----------------------------
@@ -106,6 +127,7 @@ export const useAPIStore = defineStore('api', () => {
     postRegister,
     deleteProfile,
     postLogout,
+    postCreateAdmin,
     getAuthUser,
     postUpdateProfile, // <- adicionado
     getGames,

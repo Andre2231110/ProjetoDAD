@@ -18,6 +18,7 @@ export const useGameStore = defineStore('game', () => {
   // Flag para distinguir Online vs Bot
   const isMultiplayer = ref(false)
   const multiplayerGameId = ref(null)
+  const resignedBy = ref(null)
 
   const deck = ref([])
   const myHand = ref([]) 
@@ -451,6 +452,7 @@ export const useGameStore = defineStore('game', () => {
       isMatchMode.value = gameData.isMatch
       beganAt.value = new Date()
       endedAt.value = undefined // Garante que não mostra ecrã final
+      resignedBy.value = null
       
       myPoints.value = 0
       opponentPoints.value = 0
@@ -507,6 +509,10 @@ export const useGameStore = defineStore('game', () => {
       myPoints.value = amIPlayer1 ? gameData.p1Points : gameData.p2Points
       opponentPoints.value = amIPlayer1 ? gameData.p2Points : gameData.p1Points
 
+      if (gameData.resignedBy) {
+          resignedBy.value = gameData.resignedBy
+      }
+
       // Atualizar Turno
       if (gameData.turn == myId) {
           currentTurn.value = 'me'
@@ -517,7 +523,11 @@ export const useGameStore = defineStore('game', () => {
       // Verificar se o jogo acabou
       if (gameData.status === 'Ended') {
           isGameComplete.value = true // Isto dispara o popup final
-          // Podes adicionar lógica para mostrar quem ganhou
+          if (resignedBy.value) {
+              const amIResigner = (resignedBy.value == authStore.currentUser.id)
+              if (amIResigner) toast.error("Desististe do jogo.")
+              else toast.success("O oponente desistiu! Ganhaste.")
+          }
       }
   }
 
@@ -546,6 +556,7 @@ export const useGameStore = defineStore('game', () => {
 
     // Actions Lobby
     createGame, cancelGame, joinGame, setGames, startMultiplayerGame,updateMultiplayerState,
+    resignedBy, 
     
     // Getters
     myGames, availableGames

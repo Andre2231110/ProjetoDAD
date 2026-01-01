@@ -7,12 +7,14 @@ import ProfilePage from '@/pages/profile/ProfilePage.vue'
 import GamePage from '@/pages/game/GamePage.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import AdminPage from '@/pages/admin/AdminPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
+      name: 'HomePage',
       component: HomePage,
     },
     {
@@ -44,6 +46,12 @@ const router = createRouter({
       path: '/profile',
       name: 'Profile',
       component: ProfilePage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/administration',
+      name: 'Administration',
+      component: AdminPage,
       meta: { requiresAuth: true },
     },
     {
