@@ -2,15 +2,12 @@
   <Toaster richColors />
 
   <nav class="max-w-[75%] w-full mx-auto p-5 flex justify-between items-center bg-white shadow-md rounded-lg">
-  <nav class="max-w-[75%] w-full mx-auto p-5 flex justify-between items-center bg-white shadow-md rounded-lg">
     <div class="flex items-center gap-4">
       <RouterLink to="/" class="text-2xl font-extrabold text-indigo-600 hover:text-indigo-800">
         Página Inicial 🎴
       </RouterLink>
 
       <!-- Botão Lobby -->
-      <RouterLink v-if="authStore.isLoggedIn" to="/lobby"
-        class="ml-6 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
       <RouterLink v-if="authStore.isLoggedIn" to="/lobby"
         class="ml-6 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
         🃏 Jogar

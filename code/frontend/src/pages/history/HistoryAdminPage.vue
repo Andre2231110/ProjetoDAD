@@ -5,7 +5,7 @@
       <div class="mb-10 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
           <h1 class="text-4xl font-black text-indigo-900 tracking-tight uppercase italic">Gestão de Históricos</h1>
-          <p class="text-slate-400 font-bold text-xs uppercase tracking-widest">Painel de Controlo Administrativo 👑</p>
+          <p class="text-slate-400 font-bold text-xs uppercase tracking-widest">Painel de Controlo Administrativo</p>
         </div>
         
         <div class="relative w-full md:w-96">
