@@ -12,7 +12,7 @@
         <p class="font-bold">A carregar as tuas partidas...</p>
       </div>
 
-      <div v-else-if="games.length === 0" class="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+      <div v-else-if="games?.length === 0" class="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
         <span class="text-6xl mb-4">📭</span>
         <p class="text-slate-500 font-bold text-lg">Ainda não tens jogos registados.</p>
         <p class="text-slate-400">Vai para o Lobby e começa a jogar!</p>

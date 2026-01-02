@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 
 
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware('auth:sanctum')->delete('/profile/delete', [ProfileController::class, 'destroy']);
@@ -26,9 +26,10 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
     Route::post('logout', [AuthController::class, 'logout']);
+    
+    Route::apiResource('games', GameController::class); 
 });
 
-Route::apiResource('games', GameController::class);
 
 Route::middleware('auth:sanctum')->get('/stats/personal', [StatsController::class, 'personal']);
 
