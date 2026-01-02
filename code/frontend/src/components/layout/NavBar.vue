@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-8xl mx-auto w-full flex items-center gap-4">
-    
+
     <div v-if="authStore.isLoggedIn" class="flex items-center gap-6">
       <div class="flex items-center gap-2">
         <img :src="computedAvatar" class="w-10 h-10 rounded-full border border-indigo-200 shadow-sm" />
@@ -36,7 +36,7 @@ const router = useRouter()
 const computedAvatar = computed(() => {
   const avatar = authStore.currentUser?.current_avatar
   if (!avatar) return '/default.jpg'
-  return `${API_URL}/storage/${avatar}`
+  return `${API_URL}/storage/photos_avatars/${avatar}`
 })
 
 // Logout

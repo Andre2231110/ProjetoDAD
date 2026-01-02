@@ -20,8 +20,7 @@
               Nome Completo
             </label>
             <Input id="name" v-model="formData.name" type="text"
-              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
-              required placeholder="Teu nome aqui" />
+              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500" required placeholder="Teu nome aqui" />
           </div>
 
           <div class="space-y-1">
@@ -29,8 +28,7 @@
               Alcunha (Nickname)
             </label>
             <Input id="nickname" v-model="formData.nickname" type="text"
-              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
-              required placeholder="Ex: MestreDaBisca" />
+              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500" required placeholder="Ex: MestreDaBisca" />
           </div>
 
           <div class="md:col-span-2 space-y-1">
@@ -38,8 +36,7 @@
               Endereço de Email
             </label>
             <Input id="email" v-model="formData.email" type="email"
-              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
-              required placeholder="exemplo@email.com" />
+              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500" required placeholder="exemplo@email.com" />
           </div>
 
           <div class="space-y-1">
@@ -47,8 +44,7 @@
               Palavra-passe
             </label>
             <Input id="password" v-model="formData.password" type="password"
-              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
-              required placeholder="••••••••" />
+              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500" required placeholder="••••••••" />
           </div>
 
           <div class="space-y-1">
@@ -56,22 +52,46 @@
               Confirmar Palavra-passe
             </label>
             <Input id="password_confirmation" v-model="formData.password_confirmation"
-              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500"
-              type="password" required placeholder="••••••••" />
+              class="h-12 rounded-xl border-slate-200 focus:ring-indigo-500" type="password" required
+              placeholder="••••••••" />
           </div>
 
           <div class="md:col-span-2 space-y-1">
-            <label for="avatar" class="block text-base font-bold text-indigo-600 ml-1">
+            <label class="block text-base font-bold text-indigo-600 ml-1">
               Foto de Perfil (Opcional)
             </label>
-            <Input id="avatar" type="file" accept="image/*" @change="handleFileChange"
-              class="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-black file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 h-auto p-2"
-            />
+
+            <!-- Caixa com BORDA (não clicável) -->
+            <div class="flex items-center justify-between
+           border border-slate-200 rounded-xl
+           px-4 py-3 bg-white">
+
+              <!-- Input escondido -->
+              <input id="avatar" type="file" accept="image/*" class="hidden" @change="handleFileChange" />
+
+              <!-- ÚNICA zona clicável -->
+              <label for="avatar" class="cursor-pointer
+             px-4 py-2 rounded-full
+             bg-indigo-600 text-white text-sm font-bold
+             hover:bg-indigo-700 transition
+             whitespace-nowrap">
+                Escolher ficheiro
+              </label>
+
+              <!-- Texto / estado -->
+              <span class="text-sm text-gray-500 truncate">
+                {{ avatarFile ? avatarFile.name : 'Nenhum ficheiro selecionado' }}
+              </span>
+
+            </div>
           </div>
+
+
         </div>
 
         <div class="pt-6">
-          <Button type="submit" class="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg shadow-lg shadow-indigo-100 rounded-xl transition-all active:scale-95 uppercase tracking-widest cursor-pointer">
+          <Button type="submit"
+            class="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg shadow-lg shadow-indigo-100 rounded-xl transition-all active:scale-95 uppercase tracking-widest cursor-pointer">
             Criar Conta
           </Button>
         </div>
