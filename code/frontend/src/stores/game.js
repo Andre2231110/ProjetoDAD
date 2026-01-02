@@ -164,6 +164,25 @@ export const useGameStore = defineStore('game', () => {
     if (tableCards.value.length >= 2) return
     if (isGameComplete.value) return
 
+    if (deck.value.length === 0 && tableCards.value.length === 1) {
+        const firstCardOnTable = tableCards.value[0];
+        const leadSuit = firstCardOnTable.suit;
+        
+        // Verificar se o jogador tem alguma carta do naipe que abriu a jogada
+        const hasSuit = myHand.value.some(c => c.suit === leadSuit);
+
+        if (hasSuit && card.suit !== leadSuit) {
+            toast.warning("Regra de Assistir: É obrigatório seguir o naipe!", {
+                timeout: 3000,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                position: "top-right"
+            });
+            return; 
+        }
+    }
+
     // MULTIPLAYER
     if (isMultiplayer.value) {
         // Envia para o servidor e espera o update
