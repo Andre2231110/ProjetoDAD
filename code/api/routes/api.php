@@ -45,7 +45,7 @@ Route::apiResource('matches',MatchController::class);
 Route::middleware('auth:sanctum')->get('/stats/personal', [StatsController::class, 'personal']);
 
 Route::middleware('auth:sanctum')->get('/users/me/games', [GameController::class, 'userGames']);
- 
+
 Route::get("/ranking/global", [RankingController::class, "globalRanking"]);
 
 Route::middleware("auth:sanctum")->get("/ranking/personal", [RankingController::class, "personalStats"]);
@@ -68,6 +68,9 @@ Route::post('/users/equip', [InventoryController::class, 'equip']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/matches/user', [MatchController::class, 'userMatches']);
+
+    //transactions de moedas do utilizador autenticado
+    Route::get('users/me/transactions', [CoinController::class, 'index']);
 
 });
 
