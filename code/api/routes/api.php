@@ -37,11 +37,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::apiResource('games', GameController::class);
 
-Route::middleware('auth:sanctum')->get('/stats/personal', [StatsController::class, 'personal']);
-
 Route::middleware('auth:sanctum')->get('/users/me/games', [GameController::class, 'userGames']);
-Route::middleware("auth:sanctum")->get("/ranking/global", [RankingController::class, "globalRanking"]);
+ 
+Route::get("/ranking/global", [RankingController::class, "globalRanking"]);
 
+Route::middleware("auth:sanctum")->get("/ranking/personal", [RankingController::class, "personalStats"]);
 // Rotas da Loja
 Route::get('/shop/items', [ShopController::class, 'index']); // Listar itens
 Route::post('/shop/buy', [ShopController::class, 'buy']);    // Comprar item
@@ -67,6 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::get('/matches/{id}/games', [MatchController::class, 'matchGames']);
 
+Route::get("/ranking/global", [RankingController::class, "globalRanking"]);
 //shop
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/coins', [CoinController::class, 'index']);

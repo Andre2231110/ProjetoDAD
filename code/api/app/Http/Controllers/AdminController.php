@@ -52,7 +52,7 @@ class AdminController extends Controller
             $type = $request->input('type');
             $blocked = $request->input('blocked');
 
-            $usersQuery = \App\Models\User::select('id', 'name', 'nickname', 'email', 'type', 'blocked')
+            $usersQuery = User::select('id', 'name', 'nickname', 'email', 'type', 'blocked')
                 ->orderBy('id', 'desc');
 
             // Filtros
@@ -125,7 +125,7 @@ class AdminController extends Controller
     public function deleteUser($id)
     {
         try {
-            $user = \App\Models\User::findOrFail($id);
+            $user = User::findOrFail($id);
 
             if ($user->type === 'A') {
                 return response()->json([

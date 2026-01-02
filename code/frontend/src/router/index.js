@@ -38,6 +38,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/ranking',
+      name: 'ranking',
+      component: () => import('@/pages/ranking/RankingPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/register',
       name: 'RegisterPage',
       component: () => import('@/pages/register/RegisterPage.vue'),
