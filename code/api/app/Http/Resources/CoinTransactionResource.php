@@ -14,6 +14,8 @@ class CoinTransactionResource extends JsonResource
      */
     public function toArray($request) {
         return [
+            'id' => $this->id,
+            'user_id' => $this->user_id,
             'date' => $this->transaction_datetime,
             'amount' => $this->coins,
             'type' => $this->type->name,
