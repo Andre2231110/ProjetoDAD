@@ -2,12 +2,15 @@
   <Toaster richColors />
 
   <nav class="max-w-[75%] w-full mx-auto p-5 flex justify-between items-center bg-white shadow-md rounded-lg">
+  <nav class="max-w-[75%] w-full mx-auto p-5 flex justify-between items-center bg-white shadow-md rounded-lg">
     <div class="flex items-center gap-4">
       <RouterLink to="/" class="text-2xl font-extrabold text-indigo-600 hover:text-indigo-800">
         Página Inicial 🎴
       </RouterLink>
 
       <!-- Botão Lobby -->
+      <RouterLink v-if="authStore.isLoggedIn" to="/lobby"
+        class="ml-6 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
       <RouterLink v-if="authStore.isLoggedIn" to="/lobby"
         class="ml-6 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
         🃏 Jogar
@@ -40,20 +43,34 @@
 
         <div class="h-8 w-[1px] bg-slate-200 mx-4"></div>
 
-        <RouterLink to="/profile" class="group flex items-center gap-3 pr-2">
-          <div class="relative">
-            <img :src="computedAvatar" alt="Avatar"
-              class="w-10 h-10 rounded-full border-2 border-transparent group-hover:border-indigo-500 object-cover transition-all shadow-sm" />
-            <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+        <div class="flex items-center gap-6">
+
+          <RouterLink to="/profile" class="group flex items-center gap-3">
+            <div class="relative">
+              <img :src="computedAvatar" alt="Avatar"
+                class="w-10 h-10 rounded-full border-2 border-transparent group-hover:border-indigo-500 object-cover transition-all shadow-sm" />
+              <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+            </div>
+
+            <div class="flex flex-col items-start leading-tight">
+              <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Jogador</span>
+              <span class="font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
+                {{ authStore.currentUser?.name }}
+              </span>
+            </div>
+          </RouterLink>
+
+          <div class="flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100 shadow-sm">
+            <span class="text-lg">💰</span>
+            <div class="flex flex-col leading-none">
+              <span class="text-[9px] uppercase font-bold text-indigo-400 tracking-wider">Saldo</span>
+              <span class="font-bold text-indigo-700 text-sm">
+                {{ authStore.currentUser?.coins_balance ?? 0 }}
+              </span>
+            </div>
           </div>
 
-          <div class="flex flex-col items-start leading-tight">
-            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Jogador</span>
-            <span class="font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">
-              {{ authStore.currentUser?.name }}
-            </span>
-          </div>
-        </RouterLink>
+        </div>
 
         <button @click="handleLogout"
           class="ml-6 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all cursor-pointer"
