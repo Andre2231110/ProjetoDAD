@@ -182,7 +182,7 @@
           </tr>
 
           <tr v-if="!users.length">
-            <td colspan="7" class="text-center py-5 text-gray-500">Nenhum usuário encontrado</td>
+            <td colspan="7" class="text-center py-5 text-gray-500">Nenhum utilizador encontrado</td>
           </tr>
         </tbody>
       </table>

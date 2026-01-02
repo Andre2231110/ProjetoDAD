@@ -29,7 +29,7 @@
     <!-- RESUMO GERAL -->
     <div class="grid grid-cols-4 gap-6 mb-10">
       <div class="p-6 bg-blue-100 rounded-xl text-center shadow">
-        <h3 class="text-xl font-semibold mb-2">Usuários</h3>
+        <h3 class="text-xl font-semibold mb-2">Utilizadores</h3>
         <p class="text-3xl font-bold text-blue-700">{{ stats.summary.total_users || 0 }}</p>
       </div>
       <div class="p-6 bg-green-100 rounded-xl text-center shadow">
