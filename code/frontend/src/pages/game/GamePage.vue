@@ -150,9 +150,6 @@
                     Oponente a jogar...
                 </div>
             </div>
-            <div v-if="gameStore.currentTurn !== 'me' && !gameStore.isGameComplete" class="absolute bottom-32 ...">
-                {{ isMultiplayer ? 'A aguardar jogada do oponente...' : 'Bot a pensar...' }}
-            </div>
 
         </main>
         <div v-if="gameStore.isGameComplete"
@@ -311,7 +308,11 @@ const nextGame = () => {
 // Botão "Sair" (Modal Final)
 const quitGame = () => {
     gameStore.leaveGame(); // Limpa o estado da store
-    router.push('/lobby');      // Volta para o Lobby
+   if (authStore.isLoggedIn) {
+        router.push('/lobby');
+    } else {
+        router.push({ name: 'BotGame' }); 
+    }
 };
 
 // Botão "Sair" (Canto superior esquerdo)

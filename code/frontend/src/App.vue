@@ -3,11 +3,12 @@
 
   <nav class="max-w-[75%] w-full mx-auto p-5 flex justify-between items-center bg-white shadow-md rounded-lg">
     <div class="flex items-center gap-4">
-      <RouterLink to="/" class="text-2xl font-extrabold text-indigo-600 hover:text-indigo-800">
+
+      <RouterLink v-if="!authStore.isLoggedIn" to="/"
+        class="text-2xl font-extrabold text-indigo-600 hover:text-indigo-800">
         Página Inicial 🎴
       </RouterLink>
 
-      <!-- Botão Lobby -->
       <RouterLink v-if="authStore.isLoggedIn" to="/lobby"
         class="ml-6 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
         🃏 Jogar
@@ -18,7 +19,7 @@
         
         <RouterLink to="/history"
           class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all">
-          <span>O Meu Histórico</span>
+          <span>Histórico</span>
         </RouterLink>
         <RouterLink to="/ranking"
           class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-300">
@@ -90,7 +91,7 @@
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import 'vue-sonner/style.css'
 import { onMounted, computed } from 'vue'
@@ -102,6 +103,7 @@ import { useSocketStore } from '@/stores/socket'
 const socketStore = useSocketStore()
 const authStore = useAuthStore()
 const apiStore = useAPIStore()
+const router = useRouter()
 
 const API_URL = 'http://127.0.0.1:8000'
 
@@ -126,16 +128,26 @@ const computedAvatar = computed(() => {
   return `${API_URL}/storage/photos_avatars/${avatar}`
 })
 
-// Função de logout
-const handleLogout = () => {
-  toast.promise(authStore.logout(), {
-    loading: 'A fazer logout...',
-    success: () => {
-      localStorage.removeItem('token') // Limpa o token
-      return 'Logout efetuado com sucesso!'
-    },
-    error: 'Erro ao fazer logout',
-  })
+const handleLogout = async () => {
+  // 1. Mostramos o carregamento
+  const toastId = toast.loading('A fazer logout...');
+
+  try {
+    // 2. Tentamos avisar o servidor (opcional, se falhar não faz mal)
+    await authStore.logout();
+  } catch (err) {
+    console.warn('Servidor não respondeu ao logout, mas vamos sair na mesma!');
+  } finally {
+    // 3. LIMPEZA OBRIGATÓRIA (Acontece sempre, com ou sem erro do servidor!)
+    localStorage.removeItem('token');
+
+    // 4. Redirecionamos para a Homepage
+    router.push('/');
+
+    // 5. Atualizamos o Toast para sucesso
+    toast.dismiss(toastId);
+    toast.success('Logout efetuado com sucesso!');
+  }
 }
 </script>
 

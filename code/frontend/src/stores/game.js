@@ -86,75 +86,71 @@ export const useGameStore = defineStore('game', () => {
 
   // B. Atualizar Jogo (A cada jogada ou fim de ronda)
   const updateMultiplayerState = (matchData) => {
-      // 1. Identificar Jogadores
+      // Validar se temos dados básicos
+      if (!matchData || !matchData.player1 || !authStore.currentUser) {
+          console.warn("Dados de match incompletos recebidos:", matchData)
+          return
+      }
+
+      // 1. Identificar Jogadores de forma segura
       const myId = authStore.currentUser.id
-      // O backend pode enviar player1 como objeto ou ID
-      const p1Id = matchData.player1.id || matchData.player1
+      // O ID do player1 pode vir como objeto .id ou apenas o número
+      const p1Id = matchData.player1.id !== undefined ? matchData.player1.id : matchData.player1
       const amIPlayer1 = (p1Id == myId)
 
-      // 2. Atualizar MARCAS (Do Match Principal)
+      // 2. Atualizar MARCAS
       if (matchData.isMatch) {
-          myMarks.value = amIPlayer1 ? matchData.p1Marks : matchData.p2Marks
-          opponentMarks.value = amIPlayer1 ? matchData.p2Marks : matchData.p1Marks
+          myMarks.value = amIPlayer1 ? (matchData.p1Marks || 0) : (matchData.p2Marks || 0)
+          opponentMarks.value = amIPlayer1 ? (matchData.p2Marks || 0) : (matchData.p1Marks || 0)
           
           if (matchData.matchWinner) {
               matchWinner.value = (matchData.matchWinner == myId) ? 'me' : 'bot'
           }
-      } else {
-          myMarks.value = 0
-          opponentMarks.value = 0
       }
 
-      // 3. Atualizar JOGO ATUAL (Ronda)
-      // O backend agora envia 'currentGame' com o estado da mesa
+      // 3. Atualizar JOGO ATUAL
       const game = matchData.currentGame
-      
       if (game) {
-          // Cartas
+          // Atualizar cartas (usando [] como fallback para evitar erros de renderização)
           if (amIPlayer1) {
-              myHand.value = game.p1Hand
-              botHand.value = game.p2Hand
+              myHand.value = game.p1Hand || []
+              botHand.value = game.p2Hand || []
           } else {
-              myHand.value = game.p2Hand
-              botHand.value = game.p1Hand
+              myHand.value = game.p2Hand || []
+              botHand.value = game.p1Hand || []
           }
 
-          tableCards.value = game.table
-          deck.value = game.deck
-          trumpCard.value = game.trump
+          tableCards.value = game.table || []
+          deck.value = game.deck || []
+          trumpCard.value = game.trump || null
           
           // Pontos
-          myPoints.value = amIPlayer1 ? game.p1Points : game.p2Points
-          opponentPoints.value = amIPlayer1 ? game.p2Points : game.p1Points
+          myPoints.value = amIPlayer1 ? (game.p1Points || 0) : (game.p2Points || 0)
+          opponentPoints.value = amIPlayer1 ? (game.p2Points || 0) : (game.p1Points || 0)
 
           // Turno
-          if (game.turn == myId) {
-              currentTurn.value = 'me'
-          } else {
-              currentTurn.value = 'bot'
-          }
+          currentTurn.value = (game.turn == myId) ? 'me' : 'bot'
           
-          // Verificar Desistência
-          if (matchData.resignedBy) {
-              resignedBy.value = matchData.resignedBy
-          }
+          if (matchData.resignedBy) resignedBy.value = matchData.resignedBy
 
-          // Verificar Fim do Jogo (Ronda)
           if (game.status === 'Ended') {
-              endedAt.value = new Date() // Isto dispara isGameComplete = true
-              
-              if (resignedBy.value) {
-                  const amIResigner = (resignedBy.value == myId)
-                  if (amIResigner) toast.error("Desististe do jogo.")
-                  else toast.success("O oponente desistiu! Ganhaste.")
-              } else if (matchWinner.value) {
-                  const msg = matchWinner.value == 'me' ? 'Ganhaste a Partida!' : 'Perdeste a Partida.'
-                  if(matchWinner.value == 'me') toast.success(msg)
-                  else toast.error(msg)
-              }
+              endedAt.value = new Date()
+              exibirMensagemFim(matchData) // Função auxiliar para toasts
           } else {
-              endedAt.value = undefined // Garante que o modal fecha se começar novo jogo
+              endedAt.value = undefined 
           }
+      }
+  }
+
+  // Função auxiliar para não poluir a lógica principal
+  const exibirMensagemFim = (matchData) => {
+      const myId = authStore.currentUser?.id
+      if (matchData.resignedBy) {
+          if (matchData.resignedBy == myId) toast.error("Desististe do jogo.")
+          else toast.success("O oponente desistiu! Ganhaste.")
+      } else if (matchWinner.value) {
+          if(matchWinner.value == 'me') toast.success("Ganhaste a Partida!")
+          else toast.error("Perdeste a Partida.")
       }
   }
 

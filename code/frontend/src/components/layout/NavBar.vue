@@ -39,15 +39,25 @@ const computedAvatar = computed(() => {
   return `${API_URL}/storage/photos_avatars/${avatar}`
 })
 
-// Logout
 const handleLogout = async () => {
+  // 1. Mostramos o carregamento
+  const toastId = toast.loading('A fazer logout...');
+
   try {
-    await authStore.logout()  // Faz o logout
-    localStorage.removeItem('token')
-    router.push('/')  // Redireciona imediatamente
-    toast.success('Logout efetuado com sucesso!')
+    // 2. Tentamos avisar o servidor (opcional, se falhar não faz mal)
+    await authStore.logout();
   } catch (err) {
-    toast.error('Erro ao fazer logout')
+    console.warn('Servidor não respondeu ao logout, mas vamos sair na mesma!');
+  } finally {
+    // 3. LIMPEZA OBRIGATÓRIA (Acontece sempre, com ou sem erro do servidor!)
+    localStorage.removeItem('token');
+    
+    // 4. Redirecionamos para a Homepage
+    router.push('/'); 
+    
+    // 5. Atualizamos o Toast para sucesso
+    toast.dismiss(toastId);
+    toast.success('Logout efetuado com sucesso!');
   }
 }
 </script>

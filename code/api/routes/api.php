@@ -40,8 +40,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::apiResource('games', GameController::class);
 
+Route::apiResource('matches',MatchController::class);
+
+Route::middleware('auth:sanctum')->get('/stats/personal', [StatsController::class, 'personal']);
+
 Route::middleware('auth:sanctum')->get('/users/me/games', [GameController::class, 'userGames']);
- 
+
 Route::get("/ranking/global", [RankingController::class, "globalRanking"]);
 
 Route::middleware("auth:sanctum")->get("/ranking/personal", [RankingController::class, "personalStats"]);
@@ -56,23 +60,20 @@ Route::middleware('auth:sanctum')->group(function () {
 // Rotas do Inventário (Customizações)
 Route::get('/users/inventory', [InventoryController::class, 'index']);
 
-// Rota para Fim de Jogo (Escrever dados e dar moedas)
-Route::post('/matches/end', [MatchController::class, 'endMatch']);
 
-Route::post('/matches/start', [MatchController::class, 'startMatch']);
 
-Route::get('/matches', [MatchController::class, 'index']);
 
 Route::post('/users/equip', [InventoryController::class, 'equip']);
 
-Route::post('/matches/undo', [MatchController::class, 'undoPlay']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/matches/user', [MatchController::class, 'userMatches']);
 
+    //transactions de moedas do utilizador autenticado
+    Route::get('users/me/transactions', [CoinController::class, 'index']);
+
 });
 
-Route::get('/matches/{id}/games', [MatchController::class, 'matchGames']);
 
 Route::get("/ranking/global", [RankingController::class, "globalRanking"]);
 //shop

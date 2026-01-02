@@ -26,7 +26,11 @@ const router = createRouter({
     {
       path: '/lobby',
       component: LobbyPage,
-      meta: { requiresAuth: true },
+    },
+    {
+      path: '/bot-game',
+      name: 'BotGame',
+      component: () => import('@/pages/bot/BotGamePage.vue'),
     },
     {
       path: '/game',
