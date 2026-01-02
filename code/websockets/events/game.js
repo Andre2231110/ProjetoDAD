@@ -138,11 +138,13 @@ export const handleGameEvents = (io, socket) => {
         }
     });
 
-    socket.on("request-next-game", (payload) => {
+    socket.on("request-next-game", async (payload) => {
         const gameId = payload.gameId
 
         // Prepara o tabuleiro para a nova ronda
-        const game = prepareNextGame(gameId)
+        const game = await prepareNextGame(gameId)
+
+        console.log(game)
 
         if (game) {
             // Emite 'game-started' novamente para reiniciar o UI do cliente

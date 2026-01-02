@@ -60,8 +60,21 @@ class User extends Authenticatable
         return $this->hasMany(Game::class, 'winner_user_id');
     }
 
+    public function matchesWon()
+    {
+        return $this->hasMany(MatchGame::class, 'winner_user_id');
+    }
+
+    public function allMatches()
+    {
+        return $this->hasMany(MatchGame::class, 'player1_user_id')
+            ->orWhere('player2_user_id', $this->id);
+    }
+
     public function coinTransactions()
     {
         return $this->hasMany(CoinTransaction::class);
     }
+
+
 }

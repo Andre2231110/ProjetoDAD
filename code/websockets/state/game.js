@@ -217,6 +217,10 @@ export const playCard = async (matchId, userId, card) => {
                 match.matchWinner = (game.p1Points > game.p2Points) ? match.player1.id : match.player2.id
             }
 
+            const start = new Date(game.began_at);
+            const end = new Date();
+            const totalTimeSeconds = Math.abs(end - start) / 1000;
+
             await dbAPI.updateGameResult(game.db_id, {
                     player1_points: game.p1Points, 
                     player2_points: game.p2Points, 
@@ -232,9 +236,7 @@ export const playCard = async (matchId, userId, card) => {
                     (winnerId === match.player2.id ? match.player1.id : null);
 
                 
-                const start = new Date(game.began_at);
-                const end = new Date();
-                const totalTimeSeconds = Math.abs(end - start) / 1000;
+                
 
                 // Chamar a API com os novos campos
                 
@@ -260,7 +262,7 @@ export const prepareNextGame = async (matchId) => {
     match.currentGame = createNewGameObj(match.type, match.player1.id, match.player2.id)
 
     // API: Criar o novo round na BD
-    const dbGame = await dbAPI.storeGame(match.db_id, match.currentGame)
+    const dbGame = await dbAPI.storeGame(match.currentGame ,match.db_id)
     match.currentGame.db_id = dbGame.id
 
     return match

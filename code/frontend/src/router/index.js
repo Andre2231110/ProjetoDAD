@@ -8,6 +8,9 @@ import GamePage from '@/pages/game/GamePage.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AdminPage from '@/pages/admin/AdminPage.vue'
+import TransacoesAdmin from '@/pages/admin/TransacoesAdmin.vue'
+import MatchPartidasAdmin from '@/pages/admin/MatchPartidasAdmin.vue'
+import SumStatistics from '@/pages/admin/SumStatistics.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -37,6 +40,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/ranking',
+      name: 'ranking',
+      component: () => import('@/pages/ranking/RankingPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/register',
       name: 'RegisterPage',
       component: () => import('@/pages/register/RegisterPage.vue'),
@@ -58,6 +67,21 @@ const router = createRouter({
       name: 'Shop',
       component: () => import('@/pages/shop/ShopPage.vue'),
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/admin/transacoes',
+      name: 'TransacoesAdmin',
+      component: TransacoesAdmin,
+    },
+    {
+      path: '/admin/match-partidas',
+      name: 'MatchPartidasAdmin',
+      component: MatchPartidasAdmin,
+    },
+    {
+      path: '/admin/summary-stats',
+      name: 'SummaryStatsAdmin',
+      component: SumStatistics,
     },
     {
       path: '/testing',
