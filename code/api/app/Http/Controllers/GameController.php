@@ -89,7 +89,6 @@ public function store(Request $request)
             'began_at'        => now(),
             'player1_points'  => 0,
             'player2_points'  => 0,
-            'began_at'      => now(),
         ]);
 
         Log::info('3. Inseriu na BD com ID: ' . $gameId);
@@ -182,7 +181,7 @@ public function store(Request $request)
                 if ($p1Score == 120) $reward = 6;
                 elseif ($p1Score >= 91) $reward = 4;
 
-                $user = \App\Models\User::find($winnerId);
+                $user = User::find($winnerId);
                 if ($user && $user->email !== 'bot@mail.pt') {
                     $user->increment('coins_balance', $reward);
                     DB::table('coin_transactions')->insert([
@@ -198,7 +197,7 @@ public function store(Request $request)
             // 3. Empate em jogo standalone: Devolver 1 moeda a cada (Pág 3)
             if ($isDraw) {
                 // Devolve ao Player 1
-                $u1 = \App\Models\User::find($game->player1_user_id);
+                $u1 = User::find($game->player1_user_id);
                 if ($u1) {
                     $u1->increment('coins_balance', 1);
                     DB::table('coin_transactions')->insert([
@@ -210,7 +209,7 @@ public function store(Request $request)
                     ]);
                 }
                 // Devolve ao Player 2
-                $u2 = \App\Models\User::find($game->player2_user_id);
+                $u2 = User::find($game->player2_user_id);
                 if ($u2 && $u2->email !== 'bot@mail.pt') {
                     $u2->increment('coins_balance', 1);
                     DB::table('coin_transactions')->insert([

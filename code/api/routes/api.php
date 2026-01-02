@@ -1,88 +1,63 @@
 <?php
 
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CoinController;
-use App\Http\Controllers\GameController;
-use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\MatchController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\RankingController;
-use App\Http\Controllers\ShopController;
-use App\Http\Controllers\MatchHistoryController;
-use App\Http\Controllers\StatsController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use App\Http\Controllers\{
+    AuthController, AdminController, CoinController, 
+    GameController, InventoryController, MatchController, 
+    ProfileController, RankingController, ShopController, 
+    MatchHistoryController, StatsController
+};
 
+// ---------------------------------------------------------
+// 1. ROTAS PÚBLICAS (Qualquer pessoa vê)
+// ---------------------------------------------------------
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-Route::get('/admin/stats', [StatsController::class, 'adminStats']);
-Route::middleware('auth:sanctum')->delete('/profile/delete', [ProfileController::class, 'destroy']);
+Route::get("/ranking/global", [RankingController::class, "globalRanking"]);
+Route::get('/shop/items', [ShopController::class, 'index']);
+Route::get('stats/public', [StatsController::class, 'publicStats']);
+// ---------------------------------------------------------
+// 2. ROTAS PROTEGIDAS (Tens de estar logada)
+// ---------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
+    
+    // Perfil e Logout
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/users/me', fn (Request $request) => $request->user());
     Route::post('/profile/update', [ProfileController::class, 'update']);
-});
-Route::get('/admin/users', [AdminController::class, 'listAllUsers']);
-Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser']);
-Route::post('/admin/users/{id}/toggle-block', [AdminController::class, 'toggleBlockUser']);
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/admin/create-user', [AdminController::class, 'createUser']);
+    Route::delete('/profile/delete', [ProfileController::class, 'destroy']);
 
-});
-Route::middleware('auth:api')->group(function () {
-    Route::get('admin/users/{userId}/history', [AdminController::class, 'userMatchHistory']);
-});
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/users/me', function (Request $request) {
-        return $request->user();
-    });
-    Route::post('logout', [AuthController::class, 'logout']);
-});
+    // Estatísticas e Rankings Pessoais
+    Route::get('/stats/personal', [StatsController::class, 'personal']);
+    Route::get("/ranking/personal", [RankingController::class, "personalStats"]);
 
-Route::apiResource('games', GameController::class);
-
-Route::apiResource('matches',MatchController::class);
-
-Route::middleware('auth:sanctum')->get('/stats/personal', [StatsController::class, 'personal']);
-
-Route::middleware('auth:sanctum')->get('/users/me/games', [GameController::class, 'userGames']);
-
-Route::get("/ranking/global", [RankingController::class, "globalRanking"]);
-
-Route::middleware("auth:sanctum")->get("/ranking/personal", [RankingController::class, "personalStats"]);
-// Rotas da Loja
-Route::get('/shop/items', [ShopController::class, 'index']); // Listar itens
-Route::post('/shop/buy', [ShopController::class, 'buy']);    // Comprar item
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/matches/history', [MatchHistoryController::class, 'index']);
-});
-
-// Rotas do Inventário (Customizações)
-Route::get('/users/inventory', [InventoryController::class, 'index']);
-
-
-
-
-Route::post('/users/equip', [InventoryController::class, 'equip']);
-
-
-Route::middleware('auth:sanctum')->group(function () {
+    // Matches e Jogos (IMPORTANTE: Específicas ANTES do Resource)
+    Route::get('/matches/history', [MatchHistoryController::class, 'index']); 
     Route::get('/matches/user', [MatchController::class, 'userMatches']);
+    Route::get('/users/me/games', [GameController::class, 'userGames']);
+    
+    Route::apiResource('games', GameController::class);
+    Route::apiResource('matches', MatchController::class)->except(['show']); 
 
-    //transactions de moedas do utilizador autenticado
-    Route::get('users/me/transactions', [CoinController::class, 'index']);
-
-});
-
-
-Route::get("/ranking/global", [RankingController::class, "globalRanking"]);
-//shop
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/coins', [CoinController::class, 'index']);
+    // Moedas e Loja
     Route::get('/coins/balance', [CoinController::class, 'getBalance']);
     Route::post('/coins/purchase', [CoinController::class, 'purchase']);
+    Route::get('/users/me/transactions', [CoinController::class, 'index']);
+    Route::post('/shop/buy', [ShopController::class, 'buy']);
+    Route::get('/users/inventory', [InventoryController::class, 'index']);
+    Route::post('/users/equip', [InventoryController::class, 'equip']);
 
-    // apenas admins: todas as transações
-    Route::get('/admin/coins/transactions', [CoinController::class, 'getAllTransactions']);
-
+    // ---------------------------------------------------------
+    // 3. ÁREA DE ADMINISTRAÇÃO (Apenas Admins)
+    // ---------------------------------------------------------
+    Route::prefix('admin')->group(function () {
+        Route::get('/stats', [StatsController::class, 'adminStats']);
+        Route::get('/users', [AdminController::class, 'listAllUsers']);
+        Route::post('/create-user', [AdminController::class, 'createUser']);
+        Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+        Route::post('/users/{id}/toggle-block', [AdminController::class, 'toggleBlockUser']);
+        Route::get('/users/{userId}/history', [AdminController::class, 'userMatchHistory']);
+        Route::get('/coins/transactions', [CoinController::class, 'getAllTransactions']);
+    });
 });

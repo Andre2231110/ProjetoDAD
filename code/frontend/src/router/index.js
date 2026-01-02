@@ -54,7 +54,7 @@ const router = createRouter({
       path: '/ranking',
       name: 'ranking',
       component: () => import('@/pages/ranking/RankingPage.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: false },
     },
     {
       path: '/register',
@@ -72,6 +72,12 @@ const router = createRouter({
       name: 'Administration',
       component: AdminPage,
       meta: { requiresAuth: true, requiresAdmin: true},
+    },
+    {
+      path: '/stats',
+      name: 'Stats',
+      component: () => import('@/pages/stats/StatsPage.vue'),
+      meta: { requiresAuth: false },
     },
     {
       path: '/shop',
