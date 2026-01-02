@@ -40,7 +40,10 @@ class ProfileController extends Controller
             }
 
             $path = $request->file('avatar')->store('photos_avatars', 'public');
-            $user->current_avatar = $path;
+
+            $filename = basename($path);
+            $user->photo_avatar_filename = $filename;
+            $user->current_avatar = $filename;
         }
 
         $user->save();

@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-8xl mx-auto w-full flex items-center gap-4">
-    
+
     <div v-if="authStore.isLoggedIn" class="flex items-center gap-6">
       <div class="flex items-center gap-2">
         <img :src="computedAvatar" class="w-10 h-10 rounded-full border border-indigo-200 shadow-sm" />
@@ -24,29 +24,30 @@
 </template>
 
 <script setup>
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter  } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const API_URL = 'http://127.0.0.1:8000'
+const router = useRouter()
 
 const computedAvatar = computed(() => {
   const avatar = authStore.currentUser?.current_avatar
   if (!avatar) return '/default.jpg'
-  return `${API_URL}/storage/${avatar}`
+  return `${API_URL}/storage/photos_avatars/${avatar}`
 })
 
 // Logout
-const handleLogout = () => {
-  toast.promise(authStore.logout(), {
-    loading: 'A fazer logout...',
-    success: () => {
-      localStorage.removeItem('token')
-      return 'Logout efetuado com sucesso!'
-    },
-    error: 'Erro ao fazer logout',
-  })
+const handleLogout = async () => {
+  try {
+    await authStore.logout()  // Faz o logout
+    localStorage.removeItem('token')
+    router.push('/')  // Redireciona imediatamente
+    toast.success('Logout efetuado com sucesso!')
+  } catch (err) {
+    toast.error('Erro ao fazer logout')
+  }
 }
 </script>

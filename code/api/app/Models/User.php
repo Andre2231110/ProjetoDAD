@@ -1,13 +1,12 @@
 <?php
-
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
@@ -31,7 +30,7 @@ class User extends Authenticatable
         'capote_count',
         'bandeira_count',
         'current_deck',
-        'current_avatar'
+        'current_avatar',
     ];
 
     /**
@@ -53,11 +52,16 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
     }
     public function gamesWon()
     {
         return $this->hasMany(Game::class, 'winner_user_id');
+    }
+
+    public function coinTransactions()
+    {
+        return $this->hasMany(CoinTransaction::class);
     }
 }

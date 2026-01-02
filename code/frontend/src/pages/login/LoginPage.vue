@@ -80,7 +80,7 @@ const formData = ref({
 const handleSubmit = async () => {
   try {
     const user = await authStore.login(formData.value)
-    toast.success(`Bem-vinda de volta, ${user.name}!`)
+    toast.success(`Bem-vindo/a de volta, ${user.name}!`)
     router.push('/')
   } catch (e) {
     toast.error('Erro ao iniciar sessão. Verifica os teus dados.')

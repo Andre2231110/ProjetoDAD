@@ -82,16 +82,14 @@ export const useSocketStore = defineStore('socket', () => {
       gameStore.startMultiplayerGame(gameData)
       
       // 2. Redireciona para o tabuleiro
-      router.push({ name: 'multiplayer' })
+      router.push({ name: 'Game', query: { mode: 'multiplayer' } })
       toast.success('Jogo começou!')
     })
 
-    // --- GAMEPLAY: Recebe atualizações (cartas jogadas, etc) ---
-    /* Futuramente vais precisar disto para atualizar a mesa
     socket.on('game-update', (gameData) => {
+       console.log('Update de jogo recebido:', gameData)
        gameStore.updateMultiplayerState(gameData)
     })
-    */
   }
 
   // --------------------------------------------------------
@@ -109,6 +107,10 @@ export const useSocketStore = defineStore('socket', () => {
 
   const emitJoinGame = (game) => {
     // Validação de saldo antes de enviar
+
+    console.log(game)
+    console.log(authStore.currentUser?.coins_balance)
+
     const balance = authStore.currentUser?.coins_balance ?? 0
     if (balance < game.stake) {
         toast.error('Saldo insuficiente!')
@@ -126,6 +128,15 @@ export const useSocketStore = defineStore('socket', () => {
   const emitLeaveGame = (gameId) => {
       socket.emit('leave-game', { gameId })
   }
+  const emitPlayCard = (gameId, card) => {
+      console.log(`[Socket] A jogar carta ${card.id} no jogo ${gameId}`)
+      socket.emit('play-card', { gameId, card })
+  }
+
+  const emitRequestNextGame = (gameId) => {
+      console.log(`[Socket] Pedindo próximo jogo para match ${gameId}`)
+      socket.emit('request-next-game', { gameId })
+  }
 
   return {
     joined,
@@ -137,6 +148,8 @@ export const useSocketStore = defineStore('socket', () => {
     emitCreateGame,
     emitJoinGame,
     emitCancelGame,
-    emitLeaveGame
+    emitLeaveGame,
+    emitPlayCard,
+    emitRequestNextGame
   }
 })
