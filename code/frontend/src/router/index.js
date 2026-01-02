@@ -29,6 +29,11 @@ const router = createRouter({
       component: LobbyPage,
     },
     {
+      path: '/bot-game',
+      name: 'BotGame',
+      component: () => import('@/pages/bot/BotGamePage.vue'),
+    },
+    {
       path: '/game',
       name: 'Game',
       component: GamePage,
