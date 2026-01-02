@@ -1,27 +1,27 @@
 import { getUser } from "../state/connection.js"
 // Importamos as funções da Bisca que criámos no step anterior
 // Repara que removemos flipCard e clearFlippedCard
-import { createGame, getGames, joinGame, removeGame, playCard, resignGame, startTurnTimer, clearTurnTimer,prepareNextGame } from "../state/game.js"
+import { createGame, getGames, joinGame, removeGame, playCard, resignGame, startTurnTimer, clearTurnTimer, prepareNextGame } from "../state/game.js"
 import { server } from "../server.js"
 
 export const handleGameEvents = (io, socket) => {
 
     // --- 1. CRIAR JOGO ---
     socket.on("create-game", (config) => {
-        
+
         const user = getUser(socket.id)
         if (!user) return
-        
+
         try {
             // Cria o jogo com as configurações (aposta, tipo, etc)
             const game = createGame(config, user)
             console.log(game)
-            
+
             // O criador entra na sala do Socket correspondente
             socket.join(`game-${game.id}`)
-            
+
             console.log(`[Bisca] ${user.name} criou o jogo #${game.id} (Tipo: ${game.type})`)
-            
+
             // Envia a lista atualizada para TODOS os clientes (Lobby)
             // Nota: O frontend espera "games-list", não apenas "games"
             io.emit("games-list", getGames())
@@ -29,7 +29,7 @@ export const handleGameEvents = (io, socket) => {
             console.error("Erro ao criar jogo:", e)
         }
     })
-    
+
     // --- 2. PEDIR LISTA DE JOGOS ---
     socket.on("get-games", () => {
         socket.emit("games-list", getGames())
@@ -40,44 +40,48 @@ export const handleGameEvents = (io, socket) => {
         const game = resignGame(gameId, loserId)
         if (game) {
             // Adiciona uma flag para o frontend saber que foi por tempo
-            game.timeout = true 
+            game.timeout = true
             io.to(`game-${gameId}`).emit("game-update", game)
         }
     }
-    
+
     // --- 3. JUNTAR A UM JOGO ---
-    socket.on("join-game", (payload) => {
+    // backend/websockets/events/game.js
+
+    socket.on("join-game", async (matchId) => { // <--- Adicionar async aqui
         const user = getUser(socket.id)
         if (!user) return
 
-        // O payload pode vir como objeto { gameId: 1 } ou direto
-        const gameId = payload.gameId || payload
-        
-        // Tenta juntar o jogador (a função joinGame no state já baralha e dá cartas)
-        const game = joinGame(gameId, user)
-        
-        if (game) {
-            // Jogador entra na sala
-            socket.join(`game-${game.id}`)
-            console.log(`[Bisca] ${user.name} entrou no jogo #${game.id}`)
-            
-            // 1. Atualiza o lobby para todos (o jogo deixa de estar 'Pending')
-            io.emit("games-list", getGames())
-            
-            // 2. AVISA A SALA que o jogo começou e envia os dados (cartas, trunfo, etc)
-            // Isto fará o frontend redirecionar para o tabuleiro
-            io.to(`game-${game.id}`).emit("game-started", game)
+        try {
+            console.log(`[Socket] O user ${user.nickname} está a tentar entrar no jogo ${matchId}`)
 
-            startTurnTimer(game.id, () => handleTimeout(game.id, game.turn))
-        } else {
-            // Envia erro apenas para quem tentou entrar
-            socket.emit("error", { message: "Não foi possível entrar no jogo (Cheio ou Cancelado)." })
+            // Chamamos a função do game.js (que agora é async)
+            const match = await joinGame(matchId, user)
+
+            if (match) {
+                // 1. Ambos os jogadores devem estar na mesma sala (pelo ID grande do Socket)
+                // O Player B (quem entra) faz join agora
+                socket.join(`game-${match.id}`)
+
+                // 2. Avisar AMBOS os jogadores que o jogo começou
+                // Usamos io.to(...).emit para chegar a todos na sala
+                io.to(`game-${match.id}`).emit("game-started", match)
+
+                // 3. Atualizar o Lobby para os outros users (remover o jogo da lista)
+                io.emit("games-list", getGames())
+
+                console.log(`[Bisca] Jogo #${match.id} (BD: ${match.db_id}) começou entre ${match.player1.nickname} e ${match.player2.nickname}`)
+            } else {
+                socket.emit("error", "Não foi possível entrar no jogo. Verifique o seu saldo.")
+            }
+        } catch (e) {
+            console.error("Erro no evento join-game:", e)
         }
     })
-    
+
     // --- 4. CANCELAR JOGO ---
     socket.on("cancel-game", (payload) => {
-        
+
         const user = getUser(socket.id)
         if (!user) return
 
@@ -97,7 +101,7 @@ export const handleGameEvents = (io, socket) => {
 
         const gameId = payload.gameId
 
-        if(gameId) {
+        if (gameId) {
             // Processa a desistência (atribui pontos e fecha jogo)
             const game = resignGame(gameId, user.id)
 
@@ -109,33 +113,39 @@ export const handleGameEvents = (io, socket) => {
         }
     })
 
-    socket.on("play-card", (payload) => {
-        const user = getUser(socket.id)
-        if (!user) return
+    socket.on("play-card", async (payload) => {
+        console.log("Payload recebido:", payload);
+        const user = getUser(socket.id);
+        if (!user) return;
 
-        // Executa a lógica
-        const game = playCard(payload.gameId, user.id, payload.card)
-        
-        if (game) {
-            // Envia o estado atualizado para AMBOS os jogadores
-            io.to(`game-${game.id}`).emit("game-update", game)
+        // 1. Usa AWAIT porque a função é async
+        // 2. Garante que o nome da propriedade coincide com o que o Frontend envia (ex: matchId)
+        const match = await playCard(payload.gameId, user.id, payload.card);
 
-            if (game.status === 'Playing') {
-                // Se o jogo continua, inicia timer para o PRÓXIMO jogador (game.turn)
-                startTurnTimer(game.id, () => handleTimeout(game.id, game.turn))
+        if (match) {
+            // 3. O ID para a sala deve ser o match.id (o ID que os jogadores usaram para entrar na sala)
+            // Se no join-room usaste "game-123", aqui tem de ser igual
+            io.to(`game-${match.id}`).emit("game-update", match);
+
+            if (match.currentGame && match.currentGame.status === 'Playing') {
+                // Timer baseado no ID do match e no turno atual
+                startTurnTimer(match.id, () => handleTimeout(match.id, match.currentGame.turn));
             } else {
-                // Se acabou, garante que não há timers
-                clearTurnTimer(game.id)
+                clearTurnTimer(match.id);
             }
+        } else {
+            console.log("Jogada inválida ou Match não encontrado");
         }
-    })
+    });
 
-    socket.on("request-next-game", (payload) => {
+    socket.on("request-next-game", async (payload) => {
         const gameId = payload.gameId
-        
+
         // Prepara o tabuleiro para a nova ronda
-        const game = prepareNextGame(gameId)
-        
+        const game = await prepareNextGame(gameId)
+
+        console.log(game)
+
         if (game) {
             // Emite 'game-started' novamente para reiniciar o UI do cliente
             // (Esconde o modal, mostra as novas cartas)

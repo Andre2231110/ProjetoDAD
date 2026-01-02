@@ -109,6 +109,7 @@ export const useSocketStore = defineStore('socket', () => {
     // Validação de saldo antes de enviar
 
     console.log(game)
+    console.log(game.id)
     console.log(authStore.currentUser?.coins_balance)
 
     const balance = authStore.currentUser?.coins_balance ?? 0
@@ -118,7 +119,7 @@ export const useSocketStore = defineStore('socket', () => {
     }
     
     console.log(`[Socket] A tentar entrar no jogo ${game.id}`)
-    socket.emit('join-game', { gameId: game.id })
+    socket.emit('join-game', game.id)
   }
 
   const emitCancelGame = (gameId) => {
