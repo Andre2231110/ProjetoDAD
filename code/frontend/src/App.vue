@@ -30,6 +30,13 @@
         </RouterLink>
 
         <RouterLink
+          to="/shop"
+          class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-300"
+        >
+          <span>Loja</span>
+        </RouterLink>
+
+        <RouterLink
           v-if="authStore.currentUser?.type === 'A'"
           to="/administration"
           class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-300"

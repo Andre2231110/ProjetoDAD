@@ -77,25 +77,25 @@ export const useAPIStore = defineStore('api', () => {
   }
 
   const postCreateAdmin = async (adminData) => {
-  if (!token.value) throw new Error('Usuário não autenticado');
+    if (!token.value) throw new Error('Usuário não autenticado');
 
-  // FormData para enviar avatar + dados
-  const data = new FormData();
-  Object.keys(adminData).forEach((key) => {
-    if (adminData[key] !== null && adminData[key] !== undefined) {
-      data.append(key, adminData[key]);
-    }
-  });
+    // FormData para enviar avatar + dados
+    const data = new FormData();
+    Object.keys(adminData).forEach((key) => {
+      if (adminData[key] !== null && adminData[key] !== undefined) {
+        data.append(key, adminData[key]);
+      }
+    });
 
-  const response = await api.post('/admin/create-user', data, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      Authorization: `Bearer ${token.value}`,
-    },
-  });
+    const response = await api.post('/admin/create-user', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token.value}`,
+      },
+    });
 
-  return response.data; // { user: {...} }
-};
+    return response.data; // { user: {...} }
+  };
 
   // -----------------------------
   // Jogos
@@ -120,6 +120,23 @@ export const useAPIStore = defineStore('api', () => {
     return api.get(`/games?${queryParams}`)
   }
 
+  // -----------------------------
+  // Loja de Coins
+  // -----------------------------
+  const postBuyCoins = async (payload) => {
+    // payload: { euros, type, reference }
+    const response = await api.post('/coins/purchase', {
+      value: payload.euros,      // backend espera "value"
+      type: payload.type,        // MBWAY/PAYPAL/IBAN/MB/VISA
+      reference: payload.reference,
+    })
+    return response
+  }
+
+  const getBalance = () => {
+    return api.get('/coins/balance')
+  }
+
   return {
     token,
     api,
@@ -132,5 +149,7 @@ export const useAPIStore = defineStore('api', () => {
     postUpdateProfile, // <- adicionado
     getGames,
     gameQueryParameters,
+    postBuyCoins,
+    getBalance,
   }
 })

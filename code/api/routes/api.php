@@ -1,19 +1,17 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CoinController;
 use App\Http\Controllers\GameController;
-use App\Http\Controllers\StatsController;
-use App\Http\Controllers\RankingController;
-use App\Http\Controllers\ShopController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\MatchController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AdminController;
-use App\Policies\UserPolicy;
+use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\StatsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -27,7 +25,7 @@ Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser']);
 Route::post('/admin/users/{id}/toggle-block', [AdminController::class, 'toggleBlockUser']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/admin/create-user', [AdminController::class, 'createUser']);
-   
+
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -40,7 +38,6 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::apiResource('games', GameController::class);
 
 Route::middleware('auth:sanctum')->get('/stats/personal', [StatsController::class, 'personal']);
-
 
 Route::middleware('auth:sanctum')->get('/users/me/games', [GameController::class, 'userGames']);
 Route::middleware("auth:sanctum")->get("/ranking/global", [RankingController::class, "globalRanking"]);
@@ -65,10 +62,18 @@ Route::post('/matches/undo', [MatchController::class, 'undoPlay']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/matches/user', [MatchController::class, 'userMatches']);
-    
+
 });
 
 Route::get('/matches/{id}/games', [MatchController::class, 'matchGames']);
 
+//shop
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/coins', [CoinController::class, 'index']);
+    Route::get('/coins/balance', [CoinController::class, 'getBalance']);
+    Route::post('/coins/purchase', [CoinController::class, 'purchase']);
 
+    // apenas admins: todas as transações
+    Route::get('/admin/coins/transactions', [CoinController::class, 'getAllTransactions']);
 
+});

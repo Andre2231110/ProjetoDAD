@@ -55,6 +55,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/shop',
+      name: 'Shop',
+      component: () => import('@/pages/shop/ShopPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/testing',
       children: [
         {
