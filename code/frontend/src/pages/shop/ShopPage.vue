@@ -53,7 +53,7 @@
 
 
       <button type="submit" :disabled="isLoading"
-        class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 active:scale-95 transition transform flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+        class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 active:scale-95 transition transform flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
         <span v-if="isLoading">A processar... ⏳</span>
         <span v-else>Comprar Coins 🚀</span>
       </button>

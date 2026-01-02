@@ -22,7 +22,7 @@
         </RouterLink>
         <RouterLink v-else to="/history"
           class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all">
-          <span>O Meu Histórico</span>
+          <span>Histórico</span>
         </RouterLink>
         <RouterLink to="/ranking"
           class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-300">
@@ -143,10 +143,10 @@ const handleLogout = async () => {
   } finally {
     // 3. LIMPEZA OBRIGATÓRIA (Acontece sempre, com ou sem erro do servidor!)
     localStorage.removeItem('token');
-    
+
     // 4. Redirecionamos para a Homepage
-    router.push('/'); 
-    
+    router.push('/');
+
     // 5. Atualizamos o Toast para sucesso
     toast.dismiss(toastId);
     toast.success('Logout efetuado com sucesso!');
