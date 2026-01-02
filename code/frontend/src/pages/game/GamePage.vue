@@ -150,9 +150,6 @@
                     Oponente a jogar...
                 </div>
             </div>
-            <div v-if="gameStore.currentTurn !== 'me' && !gameStore.isGameComplete" class="absolute bottom-32 ...">
-                {{ isMultiplayer ? 'A aguardar jogada do oponente...' : 'Bot a pensar...' }}
-            </div>
 
         </main>
         <div v-if="gameStore.isGameComplete"

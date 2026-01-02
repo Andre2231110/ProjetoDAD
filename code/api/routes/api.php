@@ -9,6 +9,7 @@ use App\Http\Controllers\MatchController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\MatchHistoryController;
 use App\Http\Controllers\StatsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,7 +28,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/admin/create-user', [AdminController::class, 'createUser']);
 
 });
-
+Route::middleware('auth:api')->group(function () {
+    Route::get('admin/users/{userId}/history', [AdminController::class, 'userMatchHistory']);
+});
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/me', function (Request $request) {
         return $request->user();
@@ -49,6 +52,10 @@ Route::middleware("auth:sanctum")->get("/ranking/personal", [RankingController::
 // Rotas da Loja
 Route::get('/shop/items', [ShopController::class, 'index']); // Listar itens
 Route::post('/shop/buy', [ShopController::class, 'buy']);    // Comprar item
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/matches/history', [MatchHistoryController::class, 'index']);
+});
 
 // Rotas do Inventário (Customizações)
 Route::get('/users/inventory', [InventoryController::class, 'index']);

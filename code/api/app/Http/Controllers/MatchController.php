@@ -23,7 +23,6 @@ class MatchController extends Controller
             'stake'           => 'required|integer',
             'is_match'        => 'required|boolean'
         ]);
-
         try {
             return DB::transaction(function () use ($request) {
                 // Se for Match, stake mínimo 3. Se for jogo único, custo 2. (Pág 3)

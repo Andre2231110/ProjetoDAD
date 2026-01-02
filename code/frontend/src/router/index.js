@@ -40,6 +40,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/admin/history',
+      name: 'AdminHistory',
+      component: () => import('@/pages/history/HistoryAdminPage.vue'), 
+      meta: { requiresAuth: true, requiresAdmin: true } 
+    },
+    {
       path: '/ranking',
       name: 'ranking',
       component: () => import('@/pages/ranking/RankingPage.vue'),

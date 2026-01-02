@@ -110,90 +110,92 @@ public function store(Request $request)
      * PATCH /api/games/{id}
      */
     public function update(Request $request, $id)
-{
-    // 1. Log inicial para ver o que está a chegar do JS
-    Log::info("Update Game - Dados recebidos para o ID $id:", $request->all());
+    {
+        // 1. Log inicial para ver o que está a chegar do JS
+        Log::info("Update Game - Dados recebidos para o ID $id:", $request->all());
 
-    // 2. Validação Manual para podermos logar os erros antes de falhar
-    $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
-        'player1_points' => 'required|integer|min:0|max:120',
-        'player2_points' => 'required|integer|min:0|max:120',
-        'total_time'     => 'required|numeric',
-    ]);
+        // 2. Validação Manual para podermos logar os erros antes de falhar
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'player1_points' => 'required|integer|min:0|max:120',
+            'player2_points' => 'required|integer|min:0|max:120',
+            'total_time'     => 'required|numeric',
+        ]);
 
-    if ($validator->fails()) {
-        Log::error("Erro de Validação no Update Game $id:", $validator->errors()->toArray());
-        return response()->json([
-            'message' => 'Dados inválidos',
-            'errors' => $validator->errors()
-        ], 422);
-    }
-
-    try {
-        $game = Game::findOrFail($id);
-        
-        if ($game->status === 'Ended') {
-            Log::warning("Tentativa de atualizar jogo já finalizado: $id");
-            return response()->json(['message' => 'Este jogo já foi finalizado'], 400);
+        if ($validator->fails()) {
+            Log::error("Erro de Validação no Update Game $id:", $validator->errors()->toArray());
+            return response()->json([
+                'message' => 'Dados inválidos',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        $p1Score = $request->player1_points;
-        $p2Score = $request->player2_points;
-        $winnerId = null;
-        $loserId = null;
-        $isDraw = 0;
-
-        // Determinar vencedor
-        if ($p1Score > $p2Score) {
-            $winnerId = $game->player1_user_id;
-            $loserId = $game->player2_user_id;
-        } elseif ($p2Score > $p1Score) {
-            $winnerId = $game->player2_user_id;
-            $loserId = $game->player1_user_id;
-        } else {
-            $isDraw = 1;
-        }
-
-        Log::info("Cálculo de resultado - Winner: $winnerId, Loser: $loserId, Draw: $isDraw");
-
-        DB::transaction(function () use ($game, $request, $winnerId, $loserId, $isDraw, $p1Score) {
-            // 1. Atualizar o Jogo
-            $game->update([
-                'status' => 'Ended',
-                'winner_user_id' => $winnerId,
-                'loser_user_id' => $loserId,
-                'is_draw' => $isDraw,
-                'player1_points' => $p1Score,
-                'player2_points' => $request->player2_points,
-                'total_time' => $request->total_time,
-                'ended_at' => now(), // Boa prática adicionar aqui
-            ]);
-            Log::info("Jogo $game->id atualizado para Ended.");
-
-            // 2. Lógica de Recompensa
-            if ($game->match_id === null) {
-        
-        // 2. Lógica de Recompensa para Vitória
-        if ($winnerId && $winnerId === $game->player1_user_id) {
-            // Valores da Pág 3: 3 (moca), 4 (capote), 6 (bandeira)
-            $reward = 3; 
-            if ($p1Score == 120) $reward = 6;
-            elseif ($p1Score >= 91) $reward = 4;
-
-            $user = \App\Models\User::find($winnerId);
-            if ($user && $user->email !== 'bot@mail.pt') {
-                $user->increment('coins_balance', $reward);
-                DB::table('coin_transactions')->insert([
-                    'user_id' => $user->id,
-                    'game_id' => $game->id,
-                    'coin_transaction_type_id' => 5, // 'Game payout'
-                    'coins' => $reward,
-                    'transaction_datetime' => now(),
-                ]);
+        try {
+            $game = Game::findOrFail($id);
+            
+            if ($game->status === 'Ended') {
+                Log::warning("Tentativa de atualizar jogo já finalizado: $id");
+                return response()->json(['message' => 'Este jogo já foi finalizado'], 400);
             }
-        }
-        
-        // 3. Empate em jogo standalone: Devolver 1 moeda a cada (Pág 3)
+
+            $p1Score = $request->player1_points;
+            $p2Score = $request->player2_points;
+            $winnerId = null;
+            $loserId = null;
+            $isDraw = 0;
+
+            // Determinar vencedor
+            if ($p1Score > $p2Score) {
+                $winnerId = $game->player1_user_id;
+                $loserId = $game->player2_user_id;
+            } elseif ($p2Score > $p1Score) {
+                $winnerId = $game->player2_user_id;
+                $loserId = $game->player1_user_id;
+            } else {
+                $isDraw = 1;
+            }
+
+            Log::info("Cálculo de resultado - Winner: $winnerId, Loser: $loserId, Draw: $isDraw");
+
+            DB::transaction(function () use ($game, $request, $winnerId, $loserId, $isDraw, $p1Score) {
+                // 1. Atualizar o Jogo
+                $game->update([
+                    'status' => 'Ended',
+                    'winner_user_id' => $winnerId,
+                    'loser_user_id' => $loserId,
+                    'is_draw' => $isDraw,
+                    'player1_points' => $p1Score,
+                    'player2_points' => $request->player2_points,
+                    'total_time' => $request->total_time,
+                    'ended_at' => now(), // Boa prática adicionar aqui
+                ]);
+                Log::info("Jogo $game->id atualizado para Ended.");
+
+                // 2. Lógica de Recompensa
+                if ($game->match_id === null) {
+            
+            if ($game->match_id === null) {
+            
+            // 2. Lógica de Recompensa para Vitória
+            if ($winnerId && $winnerId === $game->player1_user_id) {
+                // Valores da Pág 3: 3 (moca), 4 (capote), 6 (bandeira)
+                $reward = 3; 
+                if ($p1Score == 120) $reward = 6;
+                elseif ($p1Score >= 91) $reward = 4;
+
+                $user = \App\Models\User::find($winnerId);
+                if ($user && $user->email !== 'bot@mail.pt') {
+                    $user->increment('coins_balance', $reward);
+                    DB::table('coin_transactions')->insert([
+                        'user_id' => $user->id,
+                        'game_id' => $game->id,
+                        'coin_transaction_type_id' => 5, // 'Game payout'
+                        'coins' => $reward,
+                        'transaction_datetime' => now(),
+                    ]);
+                }
+            }
+            
+            // 3. Empate em jogo standalone: Devolver 1 moeda a cada (Pág 3)
             if ($isDraw) {
                 // Devolve ao Player 1
                 $u1 = \App\Models\User::find($game->player1_user_id);
@@ -221,19 +223,20 @@ public function store(Request $request)
                 }
             }
         }
-    });
+            }
+        });
 
-        return response()->json(['message' => 'Resultado guardado com sucesso']);
+            return response()->json(['message' => 'Resultado guardado com sucesso']);
 
-    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        Log::error("Jogo não encontrado: $id");
-        return response()->json(['error' => 'Jogo não encontrado'], 404);
-    } catch (\Exception $e) {
-        Log::error("Update Game Error (ID $id): " . $e->getMessage());
-        Log::error($e->getTraceAsString()); // Log da pilha de erro completa
-        return response()->json(['error' => 'Erro interno ao processar resultado', 'debug' => $e->getMessage()], 500);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error("Jogo não encontrado: $id");
+            return response()->json(['error' => 'Jogo não encontrado'], 404);
+        } catch (\Exception $e) {
+            Log::error("Update Game Error (ID $id): " . $e->getMessage());
+            Log::error($e->getTraceAsString()); // Log da pilha de erro completa
+            return response()->json(['error' => 'Erro interno ao processar resultado', 'debug' => $e->getMessage()], 500);
+        }
     }
-}
 
     public function show($id)
     {
