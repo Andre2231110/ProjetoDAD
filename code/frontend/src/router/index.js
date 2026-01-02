@@ -22,6 +22,7 @@ const router = createRouter({
     {
       path: '/login',
       component: LoginPage,
+      meta: { hideNavbar: true }
     },
     {
       path: '/lobby',
@@ -70,7 +71,7 @@ const router = createRouter({
       path: '/administration',
       name: 'Administration',
       component: AdminPage,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresAdmin: true},
     },
     {
       path: '/shop',
@@ -82,11 +83,13 @@ const router = createRouter({
       path: '/admin/transacoes',
       name: 'TransacoesAdmin',
       component: TransacoesAdmin,
+      meta: { requiresAuth: true, requiresAdmin: true } 
     },
     {
       path: '/admin/summary-stats',
       name: 'SummaryStatsAdmin',
       component: SumStatistics,
+      meta: {requiresAuth: true, requiresAdmin: true } 
     },
     {
       path: '/testing',
