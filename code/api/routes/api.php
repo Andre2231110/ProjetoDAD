@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-
+Route::get('/admin/stats', [StatsController::class, 'adminStats']);
 Route::middleware('auth:sanctum')->delete('/profile/delete', [ProfileController::class, 'destroy']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/update', [ProfileController::class, 'update']);
