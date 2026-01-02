@@ -24,7 +24,7 @@ class MatchController extends Controller
         ]);
 
         // 2. Buscar Jogo
-        $match = \App\Models\MatchGame::find($request->match_id);
+        $match = MatchGame::find($request->match_id);
         if (! $match) {
             return response()->json(['message' => 'Not found'], 404);
         }

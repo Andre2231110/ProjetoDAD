@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Models\MatchGame;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -16,27 +17,27 @@ class AdminController extends Controller
     public function createUser(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'nickname' => 'required|string|max:50|unique:users,nickname',
-            'email'    => 'required|string|email|max:255|unique:users,email',
+            'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|confirmed|min:3',
-            'avatar'   => 'nullable|image|max:2048',
+            'avatar' => 'nullable|image|max:2048',
         ]);
 
         $user = User::create([
-            'name'          => $request->name,
-            'nickname'      => $request->nickname,
-            'email'         => $request->email,
-            'password'      => Hash::make($request->password),
-            'type'          => 'A', // admin
-            'blocked'       => 0,
+            'name' => $request->name,
+            'nickname' => $request->nickname,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'type' => 'A', // admin
+            'blocked' => 0,
             'coins_balance' => 0,
         ]);
 
         if ($request->hasFile('avatar')) {
             $path = $request->file('avatar')->store('photos_avatars', 'public');
             $user->photo_avatar_filename = $path;
-            $user->current_avatar        = $path;
+            $user->current_avatar = $path;
             $user->save();
         }
 
@@ -51,17 +52,28 @@ class AdminController extends Controller
             $perPage = $request->input('per_page', 15);
             $type = $request->input('type');
             $blocked = $request->input('blocked');
+            $search = $request->input('search');
 
-            $usersQuery = User::select('id', 'name', 'nickname', 'email', 'type', 'blocked')
+            // 1. Iniciamos a query APENAS UMA VEZ
+            $usersQuery = User::select('id', 'name', 'nickname', 'email', 'type', 'blocked', 'photo_avatar_filename')
                 ->orderBy('id', 'desc');
 
-            // Filtros
+            // 2. Aplicamos os filtros de forma condicional
             if (!empty($type)) {
                 $usersQuery->where('type', $type);
             }
 
             if ($blocked !== null && $blocked !== '') {
                 $usersQuery->where('blocked', $blocked);
+            }
+
+            // 3. Aplicamos a pesquisa por nome/nick/email
+            if (!empty($search)) {
+                $usersQuery->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%$search%")
+                        ->orWhere('nickname', 'like', "%$search%")
+                        ->orWhere('email', 'like', "%$search%");
+                });
             }
 
             $users = $usersQuery->paginate($perPage);
@@ -80,6 +92,30 @@ class AdminController extends Controller
                 'error' => 'Server error',
                 'message' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function userMatchHistory(Request $request, $userId)
+    {
+        // 1. Verificação de Segurança: Só admins
+        if ($request->user()->type !== 'A') {
+            return response()->json(['error' => 'Acesso negado! Só para admins.'], 403);
+        }
+
+        try {
+            // 2. Procuramos os matches. Importante: usamos with() para evitar o Erro 500 se as relações falharem
+            $history = MatchGame::where(function ($query) use ($userId) {
+                $query->where('player1_user_id', $userId)
+                    ->orWhere('player2_user_id', $userId);
+            })
+            // Requisito: Metadados como marcas e variante devem estar presentes
+            ->with(['player1:id,nickname', 'player2:id,nickname', 'games']) 
+            ->orderBy('began_at', 'desc')
+            ->paginate(10);
+
+            return response()->json($history);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
@@ -122,6 +158,15 @@ class AdminController extends Controller
         }
     }
 
+    public function getGlobalStats()
+{
+    return response()->json([
+        'total_users' => User::where('type', 'P')->count(),
+        'active_games' => DB::table('matches')->where('status', 'On-going')->count(),
+        'total_coins_circulating' => User::sum('coins_balance'),
+        'today_matches' => DB::table('matches')->whereDate('began_at', now()->today())->count(),
+    ]);
+}
     public function deleteUser($id)
     {
         try {

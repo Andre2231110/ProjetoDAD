@@ -13,15 +13,16 @@
         🃏 Jogar
       </RouterLink>
     </div>
-
-    <!-- Área do utilizador -->
     <div class="flex items-center gap-6">
       <div v-if="authStore.isLoggedIn" class="flex items-center">
-        <RouterLink to="/history"
-          class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-300">
-          <span>Histórico</span>
+        <RouterLink v-if="authStore.currentUser?.type === 'A'" to="/admin/history"
+          class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all">
+          <span>Gestão de Históricos </span>
         </RouterLink>
-
+        <RouterLink v-else to="/history"
+          class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all">
+          <span>O Meu Histórico</span>
+        </RouterLink>
         <RouterLink to="/ranking"
           class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-300">
           <span>Leaderboards</span>
