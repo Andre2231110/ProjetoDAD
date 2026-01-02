@@ -9,6 +9,12 @@
       >
         Utilizadores
       </RouterLink>
+      <RouterLink
+        to="/admin/history"
+        class="bg-blue-800 text-white px-6 py-2 rounded-lg"
+      >
+        Histórico Jogos
+      </RouterLink>
 
       <RouterLink
         to="/admin/transacoes"
@@ -17,13 +23,15 @@
         Transações
       </RouterLink>
 
+      
       <RouterLink
-        to="/admin/match-partidas"
+        to="/admin/summary-stats"
         class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
       >
-        Match Partidas
+        Estatisticas
       </RouterLink>
     </div>
+    
 
     <!-- TÍTULO -->
     <h2 class="text-4xl font-extrabold text-blue-700 mb-6 text-center">

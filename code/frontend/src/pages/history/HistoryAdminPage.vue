@@ -1,6 +1,36 @@
 <template>
   <div class="container mx-auto p-6 space-y-8 animate-in fade-in duration-700">
     <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-10">
+      <div class="flex gap-4 justify-center mb-10">
+      <RouterLink
+        to="/administration"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
+      >
+        Utilizadores
+      </RouterLink>
+      <RouterLink
+        to="/admin/history"
+        class="bg-blue-800 text-white px-6 py-2 rounded-lg"
+      >
+        Histórico Jogos
+      </RouterLink>
+      
+
+      <RouterLink
+        to="/admin/transacoes"
+        class="bg-blue-800 text-white px-6 py-2 rounded-lg"
+      >
+        Transações
+      </RouterLink>
+
+      
+      <RouterLink
+        to="/admin/summary-stats"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
+      >
+        Estatisticas
+      </RouterLink>
+    </div>
       
       <div class="mb-10 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>

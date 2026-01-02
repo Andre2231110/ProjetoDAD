@@ -3,22 +3,36 @@
     <h2 class="text-4xl font-extrabold text-blue-700 mb-6 text-center">
       Adminsistração de Utilizadores
     </h2>
-    <div class="flex gap-4 justify-center mb-8">
+    <div class="flex gap-4 justify-center mb-10">
+      <RouterLink
+        to="/administration"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
+      >
+        Utilizadores
+      </RouterLink>
+      <RouterLink
+        to="/admin/history"
+        class="bg-blue-800 text-white px-6 py-2 rounded-lg"
+      >
+        Histórico Jogos
+      </RouterLink>
+      
+
       <RouterLink
         to="/admin/transacoes"
-        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
+        class="bg-blue-800 text-white px-6 py-2 rounded-lg"
       >
         Transações
       </RouterLink>
 
+      
       <RouterLink
-        to="/admin/match-partidas"
+        to="/admin/summary-stats"
         class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
       >
-        Match Partidas
+        Estatisticas
       </RouterLink>
     </div>
-
     <!-- Criar Admin -->
     <div class="bg-white border border-blue-200 rounded-xl shadow-lg p-8 mb-12">
       <h3 class="text-2xl font-semibold text-blue-700 mb-6">Criar Novo Administrador</h3>
