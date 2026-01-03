@@ -3,7 +3,7 @@ import axios from 'axios'
 import { ref } from 'vue'
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: `http://${import.meta.env.VITE_API_DOMAIN}/api`,
 })
 
 export const useAPIStore = defineStore('api', () => {

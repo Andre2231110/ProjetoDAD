@@ -90,7 +90,7 @@ const tableMetrics = computed(() => [
 
 onMounted(async () => {
     try {
-        const res = await axios.get('http://127.0.0.1:8000/api/stats/public')
+        const res = await axios.get(`http://${import.meta.env.VITE_API_DOMAIN}/api/stats/public`)
         stats.value = {
             total_players: res.data.total_registered_players,
             total_matches: res.data.total_matches_played,

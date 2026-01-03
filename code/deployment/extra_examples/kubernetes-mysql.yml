@@ -1,4 +1,4 @@
-# mysql-deployment.yaml
+kubectl apply -f deployment/# mysql-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:

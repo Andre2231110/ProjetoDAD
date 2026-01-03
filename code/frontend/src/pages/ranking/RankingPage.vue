@@ -80,7 +80,7 @@
                             {{ index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '#' + (index + 1) }}
                         </span>
                         <div class="w-14 h-14 rounded-2xl bg-slate-200 overflow-hidden shadow-sm border border-slate-100">
-                            <img :src="player.photo_avatar_filename ? 'http://127.0.0.1:8000/storage/photos_avatars/' + player.photo_avatar_filename : '/default.jpg'"
+                            <img :src="player.photo_avatar_filename ? `http://${import.meta.env.VITE_API_DOMAIN}/storage/photos_avatars/` + player.photo_avatar_filename : '/default.jpg'"
                                 class="w-full h-full object-cover" />
                         </div>
                         <div>
@@ -122,7 +122,7 @@ const changeVariant = (variant) => {
 const fetchGlobal = async () => {
     loading.value = true
     try {
-        const url = `http://127.0.0.1:8000/api/ranking/global${selectedVariant.value ? '?variant=' + selectedVariant.value : ''}`
+        const url = `http://${import.meta.env.VITE_API_DOMAIN}/api/ranking/global${selectedVariant.value ? '?variant=' + selectedVariant.value : ''}`
         const res = await axios.get(url)
         rankings.value.by_wins = res.data.by_wins || []
         rankings.value.by_matches = res.data.by_matches || []
@@ -136,7 +136,7 @@ const fetchGlobal = async () => {
 const fetchPersonal = async () => {
     if (!authStore.isLoggedIn) return
     try {
-        const res = await axios.get('http://127.0.0.1:8000/api/ranking/personal', {
+        const res = await axios.get(`http://${import.meta.env.VITE_API_DOMAIN}/api/ranking/personal`, {
             headers: {
                 'Authorization': `Bearer ${apiStore.token}`,
                 'Accept': 'application/json'

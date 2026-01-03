@@ -238,7 +238,7 @@ const switchView = async (view) => {
 
 const fetchMatches = async () => {
   try {
-    const res = await axios.get(`${apiStore.API_BASE_URL || 'http://127.0.0.1:8000/api'}/matches/history`, {
+    const res = await axios.get(`${apiStore.API_BASE_URL || `http://${import.meta.env.VITE_API_DOMAIN}/api`}/matches/history`, {
       headers: { 'Authorization': `Bearer ${apiStore.token}` }
     })
     matches.value = res.data.data || []
@@ -249,7 +249,7 @@ const fetchMatches = async () => {
 
 const fetchTransactions = async () => {
   try {
-    const res = await axios.get(`${apiStore.API_BASE_URL || 'http://127.0.0.1:8000/api'}/users/me/transactions`, {
+    const res = await axios.get(`${apiStore.API_BASE_URL || `http://${import.meta.env.VITE_API_DOMAIN}/api`}/users/me/transactions`, {
       headers: { 'Authorization': `Bearer ${apiStore.token}` }
     })
     transactions.value = res.data.data || []
