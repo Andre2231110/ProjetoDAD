@@ -132,7 +132,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
-const API_URL = 'http://127.0.0.1:8000'
+const API_URL = `http://${import.meta.env.VITE_API_DOMAIN}`
 
 
 

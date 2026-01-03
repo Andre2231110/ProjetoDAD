@@ -210,8 +210,10 @@
 </template>
 
 <script setup>
+  
 import { ref, onMounted } from 'vue'
 import { useAPIStore } from '@/stores/api'
+
 
 const apiStore = useAPIStore()
 
@@ -234,6 +236,8 @@ const selectedType = ref('')
 const selectedBlocked = ref('')
 
 const handleFileChange = (e) => (avatarFile.value = e.target.files[0])
+const API_BASE = `http://${import.meta.env.VITE_API_DOMAIN}/api/admin`
+
 
 /* ========= CREATE ADMIN ========= */
 const handleSubmit = async () => {
@@ -249,7 +253,7 @@ const handleSubmit = async () => {
     for (const key in formData.value) dataToSend.append(key, formData.value[key])
     if (avatarFile.value) dataToSend.append('avatar', avatarFile.value)
 
-    const res = await fetch('http://127.0.0.1:8000/api/admin/create-user', {
+    const res = await fetch(`${API_BASE}/create-user`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiStore.token}` },
       body: dataToSend,
@@ -279,7 +283,7 @@ const fetchUsers = async (reset = false) => {
     blocked: selectedBlocked.value,
   })
 
-  const res = await fetch(`http://127.0.0.1:8000/api/admin/users?${params}`, {
+  const res = await fetch(`${API_BASE}/users?${params}`, {
     headers: { Authorization: `Bearer ${apiStore.token}` },
   })
 
@@ -292,7 +296,7 @@ const fetchUsers = async (reset = false) => {
 /* ========= BLOCK / UNBLOCK ========= */
 const toggleBlocked = async (user) => {
   try {
-    const res = await fetch(`http://127.0.0.1:8000/api/admin/users/${user.id}/toggle-block`, {
+    const res = await fetch(`${API_BASE}/users/${user.id}/toggle-block`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiStore.token}`,
@@ -301,7 +305,7 @@ const toggleBlocked = async (user) => {
       body: JSON.stringify({ blocked: user.blocked ? 0 : 1 }),
     })
 
-    if (!res.ok) throw new Error('Erro ao atualizar status')
+    if (!res.ok) throw new Error('Erro ao atualizar estado do utilizador, administradores não podem ser bloqueados.')
 
     const data = await res.json()
     user.blocked = data.data.blocked
@@ -315,14 +319,14 @@ const deleteUser = async (user) => {
   if (!confirm(`Tens a certeza que queres apagar ${user.nickname}?`)) return
 
   try {
-    const res = await fetch(`http://127.0.0.1:8000/api/admin/users/${user.id}`, {
+    const res = await fetch(`${API_BASE}/users/${user.id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${apiStore.token}`,
       },
     })
 
-    if (!res.ok) throw new Error('Erro ao apagar utilizador')
+    if (!res.ok) throw new Error('Erro ao apagar utilizador, não podes apagar a própria conta.')
 
     users.value = users.value.filter((u) => u.id !== user.id)
   } catch (err) {

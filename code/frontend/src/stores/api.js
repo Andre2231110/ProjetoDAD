@@ -58,7 +58,7 @@ export const useAPIStore = defineStore('api', () => {
   // Atualizar Perfil
   // -----------------------------
   const postUpdateProfile = async (formData) => {
-    if (!token.value) throw new Error('Usuário não autenticado')
+    if (!token.value) throw new Error('Utilizador não autenticado')
 
     const response = await api.post('/profile/update', formData, {
       headers: {
@@ -72,12 +72,12 @@ export const useAPIStore = defineStore('api', () => {
 
 
   const deleteProfile = (password) => {
-    if (!token.value) throw new Error('Usuário não autenticado')
+    if (!token.value) throw new Error('Utilizador não autenticado')
     return api.delete('/profile/delete', { data: { password } })
   }
 
   const postCreateAdmin = async (adminData) => {
-    if (!token.value) throw new Error('Usuário não autenticado');
+    if (!token.value) throw new Error('Utilizador não autenticado');
 
     // FormData para enviar avatar + dados
     const data = new FormData();
