@@ -3,9 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\{
-    AuthController, AdminController, CoinController, 
-    GameController, InventoryController, MatchController, 
-    ProfileController, RankingController, ShopController, 
+    AuthController, AdminController, CoinController,
+    GameController, InventoryController, MatchController,
+    ProfileController, RankingController, ShopController,
     MatchHistoryController, StatsController
 };
 
@@ -21,7 +21,7 @@ Route::get('stats/public', [StatsController::class, 'publicStats']);
 // 2. ROTAS PROTEGIDAS (Tens de estar logada)
 // ---------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // Perfil e Logout
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/users/me', fn (Request $request) => $request->user());
@@ -33,17 +33,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get("/ranking/personal", [RankingController::class, "personalStats"]);
 
     // Matches e Jogos (IMPORTANTE: Específicas ANTES do Resource)
-    Route::get('/matches/history', [MatchHistoryController::class, 'index']); 
+    Route::get('/matches/history', [MatchHistoryController::class, 'index']);
     Route::get('/matches/user', [MatchController::class, 'userMatches']);
     Route::get('/users/me/games', [GameController::class, 'userGames']);
-    
-    
 
-    // Moedas e Loja
+    // Moedas
     Route::get('/coins/balance', [CoinController::class, 'getBalance']);
     Route::post('/coins/purchase', [CoinController::class, 'purchase']);
     Route::get('/users/me/transactions', [CoinController::class, 'index']);
+
+    // Loja (SHOP) - Ambos protegidos
+    Route::get('/shop/items', [ShopController::class, 'index']);
     Route::post('/shop/buy', [ShopController::class, 'buy']);
+
+    // Inventário
     Route::get('/users/inventory', [InventoryController::class, 'index']);
     Route::post('/users/equip', [InventoryController::class, 'equip']);
 
@@ -62,4 +65,4 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::apiResource('games', GameController::class);
-Route::apiResource('matches', MatchController::class)->except(['show']); 
+Route::apiResource('matches', MatchController::class)->except(['show']);

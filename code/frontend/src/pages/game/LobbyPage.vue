@@ -347,6 +347,7 @@ watch(() => newGame.value.isMatch, (isMatch) => {
     newGame.value.stake = isMatch ? 3 : 2
 })
 
+
 // --- ACTIONS ---
 
 const handleCreate = () => {

@@ -22,7 +22,6 @@
                 <div class="flex items-center gap-6 ...">
                     <div class="text-red-300 flex flex-col items-center leading-none">
                         <span>{{ gameStore.opponentPoints }}</span>
-                        <!-- NOME DO OPONENTE DINÂMICO -->
                         <span class="text-[8px] opacity-60 font-normal tracking-normal">
                             {{ isMultiplayer ? 'OPONENTE' : 'BOT' }}
                         </span>
@@ -38,13 +37,22 @@
 
             <!-- Avatar -->
             <div class="flex items-center gap-2">
-
                 <div class="text-right leading-tight hidden sm:block">
                     <p class="font-bold text-xs">{{ authStore.currentUser?.nickname || 'Eu' }}</p>
                 </div>
-                <div
-                    class="w-8 h-8 bg-indigo-500 rounded-full border border-white/50 flex items-center justify-center font-bold text-sm">
-                    {{ (authStore.currentUser?.nickname || 'E').charAt(0) }}
+
+                <div class="w-8 h-8 bg-indigo-500 rounded-full border border-white/50 flex items-center justify-center font-bold text-sm overflow-hidden relative">
+
+                    <img v-if="userAvatarSrc"
+                         :src="userAvatarSrc"
+                         alt="Avatar"
+                         class="w-full h-full object-cover"
+                         @error="(e) => e.target.style.display='none'" />
+
+                    <span v-else>
+                        {{ (authStore.currentUser?.nickname || 'E').charAt(0) }}
+                    </span>
+
                 </div>
             </div>
         </header>
@@ -61,10 +69,9 @@
                     </div>
                 </div>
 
-                <!-- Mão do Oponente (Costas) -->
-                <!-- CORREÇÃO AQUI: Usa gameStore.botHand.length em vez de 3 fixo -->
+                <!-- Mão do Oponente (Costas com deck personalizado) -->
                 <div class="flex items-center justify-center -space-x-8 z-10 mt-8">
-                    <img v-for="n in gameStore.botHand.length" :key="n" src="/cards/semFace.png"
+                    <img v-for="n in gameStore.botHand.length" :key="n" :src="currentDeckBack"
                         class="h-24 md:h-28 object-contain drop-shadow-lg" />
                 </div>
             </div>
@@ -82,9 +89,9 @@
                             class="h-24 md:h-32 object-contain rounded shadow-md brightness-90" />
                     </div>
 
-                    <!-- Baralho -->
+                    <!-- Baralho (com deck personalizado) -->
                     <div v-if="gameStore.deck.length > 0" class="relative z-10 cursor-pointer">
-                        <img src="/cards/semFace.png"
+                        <img :src="currentDeckBack"
                             class="h-24 md:h-32 object-contain rounded shadow-2xl border border-white/10" />
                         <div class="absolute inset-0 flex items-center justify-center">
                             <span
@@ -121,8 +128,6 @@
             <!-- ZONA INFERIOR: Minha Mão -->
             <div class="h-1/4 flex items-end justify-center pb-2 md:pb-6 relative px-4">
 
-                
-
                 <!-- 2. Timer (fica entre o aviso de turno e as cartas) -->
                 <div v-if="isMultiplayer && !gameStore.isGameComplete"
                     class="absolute bottom-40 md:bottom-52 left-1/2 -translate-x-1/2 w-64 z-20">
@@ -152,14 +157,13 @@
                 <!-- Aviso de turno -->
                 <div v-if="gameStore.currentTurn !== 'me' && !gameStore.isGameComplete"
                     class="absolute bottom-32 bg-black/80 text-white px-4 py-2 rounded-lg text-sm font-bold backdrop-blur animate-pulse border border-white/10">
-
-                    <!-- Se for multiplayer mostra o nome do oponente, se for local mostra 'Bot' -->
                     {{ gameStore.isMultiplayer ? ' Oponente a jogar...' : 'Bot a pensar...' }}
-
                 </div>
             </div>
 
         </main>
+
+        <!-- MODAL DE FIM DE JOGO -->
         <div v-if="gameStore.isGameComplete"
             class="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
 
@@ -207,7 +211,6 @@
 
                     <div class="flex items-center justify-between px-4">
                         <div class="flex gap-1">
-                            <!-- Bolinhas das Marcas (Minhas) -->
                             <div v-for="n in 4" :key="n"
                                 class="w-4 h-4 rounded-full border border-yellow-500/50 transition-all duration-500"
                                 :class="n <= gameStore.myMarks ? 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]' : 'bg-transparent'">
@@ -217,7 +220,6 @@
                         <span class="text-white/20 font-bold text-xs">VS</span>
 
                         <div class="flex gap-1 flex-row-reverse">
-                            <!-- Bolinhas das Marcas (Oponente) -->
                             <div v-for="n in 4" :key="n"
                                 class="w-4 h-4 rounded-full border border-red-500/50 transition-all duration-500"
                                 :class="n <= gameStore.opponentMarks ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-transparent'">
@@ -225,7 +227,6 @@
                         </div>
                     </div>
 
-                    <!-- Mensagem se alguém ganhou a partida -->
                     <div v-if="gameStore.matchWinner" class="mt-4 pt-4 border-t border-white/10">
                         <span class="text-xl font-bold uppercase animate-pulse"
                             :class="gameStore.matchWinner === 'me' ? 'text-yellow-400' : 'text-red-500'">
@@ -237,14 +238,11 @@
 
                 <!-- BOTÕES DE AÇÃO -->
                 <div class="flex flex-col gap-3 mt-4 relative z-10">
-
-                    <!-- Botão: Próximo Jogo (Só aparece se for Match e ninguém ganhou ainda) -->
                     <button v-if="gameStore.isMatchMode && !gameStore.matchWinner" @click="nextGame"
                         class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-lg transition transform hover:scale-[1.02]">
                         Próximo Jogo da Partida ➔
                     </button>
 
-                    <!-- Botão: Sair (Aparece sempre, mas destaca-se mais se o jogo acabou de vez) -->
                     <button @click="voltarLobby" class="w-full py-3 rounded-xl font-bold transition text-white"
                         :class="(gameStore.isMatchMode && !gameStore.matchWinner) ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-700 hover:bg-gray-600'">
                         {{ gameStore.isMatchMode && !gameStore.matchWinner ? 'Sair da Partida (Desistir)' : 'Voltar ao Lobby' }}
@@ -267,13 +265,53 @@ const route = useRoute();
 const gameStore = useGameStore();
 const authStore = useAuthStore();
 
-// 1. Ler parâmetros da URL
+// Parâmetros da URL
 const gameType = computed(() => route.query.type || '3');
 const isMultiplayer = computed(() => route.query.mode === 'multiplayer');
 const isMatch = computed(() => route.query.isMatch === 'true');
 
 const timeLeft = ref(20)
 let timerInterval = null
+
+// Computed para o verso do deck personalizado
+const currentDeckBack = computed(() => {
+    const deckResource = authStore.currentUser?.current_deck
+    if (!deckResource || deckResource === 'deck1_preview') {
+        return '/cards/semFace.png'
+    }
+
+    const jpgDecks = ['deck2_preview', 'deck6_preview', 'deck7_preview']
+    const extension = jpgDecks.includes(deckResource) ? 'jpg' : 'png'
+
+    return `/assets/${deckResource}.${extension}`
+})
+
+
+// --- LÓGICA DO AVATAR ---
+
+const API_URL =  'http://127.0.0.1:8000'
+
+const getAssetUrl = (resourceName) => {
+  const jpgFiles = [
+    'avatar1', 'avatar2', 'avatar3', 'avatar4', 'avatar5',
+    'avatar6', 'avatar7', 'avatar8', 'avatar14', 'avatar16'
+  ]
+  if (jpgFiles.includes(resourceName)) return `/assets/${resourceName}.jpg`
+  return `/assets/${resourceName}.png`
+}
+
+const userAvatarSrc = computed(() => {
+  const avatar = authStore.currentUser?.current_avatar
+  if (!avatar) return null
+
+  // Se for um resource do inventário
+  if (avatar.startsWith('avatar') || avatar.startsWith('default_')) {
+    return getAssetUrl(avatar)
+  }
+
+  // Se for upload personalizado (foto do PC)
+  return `${API_URL}/storage/photos_avatars/${avatar}`
+})
 
 const resetVisualTimer = () => {
     clearInterval(timerInterval)
@@ -290,34 +328,29 @@ const resetVisualTimer = () => {
     }, 1000)
 }
 
-// Observar mudança de turno na Store
+// Observar mudança de turno
 watch(() => gameStore.currentTurn, () => {
     if (isMultiplayer.value) {
         resetVisualTimer()
     }
 })
 
-
-
-// 2. Helper de Imagem
+// Helper de Imagem
 const getCardSrc = (card) => {
     if (!card || !card.imageName) return '';
     return `/cards/${card.imageName}`;
 };
 
-// 3. Ações dos Botões
-
-// Botão "Próximo Jogo" (Modal Final)
+// Botão "Próximo Jogo"
 const nextGame = () => {
     const cardsToDeal = gameType.value === '9' ? 9 : 3;
     gameStore.nextGameInMatch(cardsToDeal);
 };
 
-// Botão "Sair" (Modal Final)
+// Executar saída
 const executeExit = () => {
-    gameStore.leaveGame(); // A store agora decide se envia o socket ou não
-    
-    // Redireciona
+    gameStore.leaveGame();
+
     if (authStore.isLoggedIn) {
         router.push('/lobby');
     } else {
@@ -334,44 +367,33 @@ const voltarLobby = () => {
     }
 }
 
-// Botão "Sair" (Canto superior esquerdo)
+// Botão "Sair" (Header)
 const handleExit = () => {
-    // 1. O jogo ainda está a decorrer? 
-    // (Podes usar o mesmo critério que definimos na store)
     const isOngoing = gameStore.isMultiplayer && !gameStore.matchWinner;
 
     if (isOngoing) {
-        // Se está a decorrer, pede confirmação
         if (confirm("⚠️ Estás a meio de um jogo! Se saíres, vais desistir e perder as moedas. Confirmas?")) {
             executeExit();
         }
     } else {
-        // Se o jogo já acabou, sai direto
         executeExit();
     }
 };
 
-// 4. Ciclo de Vida
-
-// Limpar ao sair da página (botão de retroceder do browser)
+// Limpar ao sair
 onUnmounted(() => {
-    // Limpa o jogo ao sair
     gameStore.leaveGame();
     clearInterval(timerInterval)
 });
 
 onMounted(() => {
-    // IMPORTANTE: Só inicia jogo local se NÃO for multiplayer
-    // No multiplayer, a store já foi preenchida pelo socket antes de entrar aqui
     if (!isMultiplayer.value) {
         const cardsToDeal = gameType.value === '9' ? 9 : 3;
 
-        // Inicia jogo contra BOT se a mão estiver vazia
         if (gameStore.myHand.length === 0) {
             gameStore.startGameLocal(cardsToDeal, isMatch.value);
         }
     } else {
-        // Validação de segurança: Se entrou na página multiplayer mas não tem dados
         if (gameStore.myHand.length === 0 && gameStore.deck.length === 0) {
             alert("Erro ao carregar jogo. A voltar ao lobby.");
             router.push('/lobby');
