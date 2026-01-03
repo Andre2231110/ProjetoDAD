@@ -14,7 +14,7 @@
 
         <div class="space-y-1 w-full">
           <label class="block text-base font-bold text-indigo-600 ml-1">
-            Avatar
+            Avatar (Upload de ficheiros)
           </label>
 
           <div class="w-full border-2 border-slate-50 rounded-xl p-4
@@ -35,9 +35,95 @@
         </div>
       </div>
 
-       <!--<pre class="text-xs text-red-500">
-      {{ authStore.currentUser }}
-    </pre>-->
+      <!-- NOVA SECÇÃO: Inventário de Avatares -->
+      <div class="mb-8 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-indigo-700 flex items-center gap-2">
+            <span>🎭</span> Meus Avatares
+          </h2>
+          <button @click="loadInventory"
+            class="px-3 py-1 text-xs bg-white rounded-lg hover:bg-indigo-50 transition border border-indigo-200 font-semibold">
+            🔄 Atualizar
+          </button>
+        </div>
+
+        <div v-if="loadingInventory" class="text-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p class="text-sm text-slate-500 mt-2">A carregar inventário...</p>
+        </div>
+
+        <div v-else-if="myAvatars.length === 0" class="text-center py-8">
+          <p class="text-slate-500">Ainda não tens avatares. Visita a loja! 🛒</p>
+        </div>
+
+        <div v-else class="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+          <button v-for="avatar in myAvatars" :key="avatar.item_resource_name"
+            @click="selectInventoryAvatar(avatar.item_resource_name)"
+            :class="[
+              'relative rounded-xl overflow-hidden border-4 transition-all hover:scale-105',
+              selectedInventoryAvatar === avatar.item_resource_name
+                ? 'border-indigo-600 shadow-lg'
+                : 'border-slate-200 hover:border-indigo-300'
+            ]">
+            <img :src="getAssetUrl(avatar.item_resource_name)"
+              :alt="avatar.item_resource_name"
+              class="w-full h-full object-cover" />
+
+            <div v-if="selectedInventoryAvatar === avatar.item_resource_name"
+              class="absolute inset-0 bg-indigo-600/20 flex items-center justify-center">
+              <span class="text-2xl">✓</span>
+            </div>
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-500 mt-3 text-center">
+          Clica num avatar para o selecionar como atual
+        </p>
+      </div>
+
+      <!-- NOVA SECÇÃO: Inventário de Decks -->
+      <div class="mb-8 p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border border-purple-100">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-purple-700 flex items-center gap-2">
+            <span>🃏</span> Meus Decks
+          </h2>
+        </div>
+
+        <div v-if="loadingInventory" class="text-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+          <p class="text-sm text-slate-500 mt-2">A carregar inventário...</p>
+        </div>
+
+        <div v-else-if="myDecks.length === 0" class="text-center py-8">
+          <p class="text-slate-500">Ainda não tens decks. Visita a loja! 🛒</p>
+        </div>
+
+        <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <button v-for="deck in myDecks" :key="deck.item_resource_name"
+            @click="selectInventoryDeck(deck.item_resource_name)"
+            :class="[
+              'relative rounded-xl overflow-hidden border-4 transition-all hover:scale-105 p-2 bg-white',
+              selectedInventoryDeck === deck.item_resource_name
+                ? 'border-purple-600 shadow-lg'
+                : 'border-slate-200 hover:border-purple-300'
+            ]">
+            <img :src="getAssetUrl(deck.item_resource_name)"
+              :alt="deck.item_resource_name"
+              class="w-full h-32 object-contain" />
+
+            <div v-if="selectedInventoryDeck === deck.item_resource_name"
+              class="absolute top-2 right-2 bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center">
+              <span class="text-lg">✓</span>
+            </div>
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-500 mt-3 text-center">
+          Clica num deck para o selecionar como atual
+        </p>
+      </div>
+
+      <!-- Formulário de Perfil -->
       <form @submit.prevent="handleUpdateProfile" class="space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
@@ -87,6 +173,7 @@
           </button>
         </div>
       </form>
+
       <!-- Modal de exclusão -->
       <transition name="fade">
         <div v-if="showDeleteModal" class="fixed inset-0 flex items-center justify-center z-50 bg-[rgba(0,0,0,0.35)]">
@@ -130,15 +217,23 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useAPIStore } from '@/stores/api'
 
 const authStore = useAuthStore()
+const apiStore = useAPIStore()
 const API_URL = `http://${import.meta.env.VITE_API_DOMAIN}`
-
-
 
 const computedAvatar = computed(() => {
   const avatar = authStore.currentUser?.current_avatar
-  return avatar ? `${API_URL}/storage/photos_avatars/${avatar}` : '/default.jpg'
+  if (!avatar) return '/default.jpg'
+
+  // Se for um resource_name do inventário (começa com 'avatar' ou 'default_')
+  if (avatar.startsWith('avatar') || avatar.startsWith('default_')) {
+    return getAssetUrl(avatar)
+  }
+
+  // Se for upload personalizado
+  return `${API_URL}/storage/photos_avatars/${avatar}`
 })
 
 const form = ref({
@@ -151,6 +246,20 @@ const form = ref({
 
 const avatarFile = ref(null)
 const avatarPreview = ref(null)
+
+// Inventário
+const loadingInventory = ref(false)
+const inventoryItems = ref([])
+const selectedInventoryAvatar = ref(null)
+const selectedInventoryDeck = ref(null)
+
+const myAvatars = computed(() =>
+  inventoryItems.value.filter(item => item.type === 'avatar')
+)
+
+const myDecks = computed(() =>
+  inventoryItems.value.filter(item => item.type === 'deck')
+)
 
 // Modal e senha
 const showDeleteModal = ref(false)
@@ -168,12 +277,61 @@ const triggerToast = (message, type = 'success') => {
   setTimeout(() => (showToast.value = false), 3000)
 }
 
+// Carregar inventário
+const loadInventory = async () => {
+  loadingInventory.value = true
+  try {
+    const response = await apiStore.getUserInventory()
+    inventoryItems.value = response.data
+
+    // Define os itens atualmente equipados
+    const user = authStore.currentUser
+    if (user) {
+      selectedInventoryAvatar.value = user.current_avatar || null
+      selectedInventoryDeck.value = user.current_deck || null
+    }
+  } catch (error) {
+    console.error('Erro ao carregar inventário:', error)
+    triggerToast('Erro ao carregar inventário', 'error')
+  } finally {
+    loadingInventory.value = false
+  }
+}
+
+// Selecionar avatar do inventário
+const selectInventoryAvatar = (resourceName) => {
+  selectedInventoryAvatar.value = resourceName
+
+  // Limpa upload personalizado quando seleciona do inventário
+  avatarFile.value = null
+  avatarPreview.value = null
+}
+
+// Selecionar deck do inventário
+const selectInventoryDeck = (resourceName) => {
+  selectedInventoryDeck.value = resourceName
+}
+
+// Helper para URLs de assets
+const getAssetUrl = (resourceName) => {
+  const jpgFiles = [
+    'deck2_preview', 'deck6_preview', 'deck7_preview',
+    'avatar1', 'avatar2', 'avatar3', 'avatar4', 'avatar5',
+    'avatar6', 'avatar7', 'avatar8', 'avatar14', 'avatar16'
+  ]
+  if (jpgFiles.includes(resourceName)) return `/assets/${resourceName}.jpg`
+  return `/assets/${resourceName}.png`
+}
+
 // Handle avatar change
 const handleAvatarChange = (event) => {
   const file = event.target.files[0]
   if (!file) return
   avatarFile.value = file
   avatarPreview.value = URL.createObjectURL(file)
+
+  // Limpa a seleção do inventário quando faz upload personalizado
+  selectedInventoryAvatar.value = null
 }
 
 // Atualizar perfil
@@ -188,18 +346,31 @@ const handleUpdateProfile = async () => {
       formData.append('password_confirmation', form.value.password_confirmation)
     if (avatarFile.value) formData.append('avatar', avatarFile.value)
 
+    // Adicionar avatar e deck selecionados do inventário
+    if (selectedInventoryAvatar.value) {
+      formData.append('inventory_avatar', selectedInventoryAvatar.value)
+    }
+    if (selectedInventoryDeck.value) {
+      formData.append('inventory_deck', selectedInventoryDeck.value)
+    }
+
     const data = await authStore.updateProfile(formData)
     triggerToast(data.message, 'success')
 
     // Atualiza o avatar local
-    // 👇 MUITO IMPORTANTE
     authStore.currentUser.current_avatar = data.user.current_avatar
+    if (data.user.current_deck) {
+      authStore.currentUser.current_deck = data.user.current_deck
+    }
 
     avatarPreview.value = null
     avatarFile.value = null
 
     form.value.password = ''
     form.value.password_confirmation = ''
+
+    // Recarrega inventário para atualizar seleção
+    await loadInventory()
   } catch (err) {
     console.error(err)
     triggerToast(err.response?.data?.message || 'Erro ao atualizar perfil', 'error')
@@ -235,7 +406,7 @@ const confirmDelete = async () => {
 }
 
 // Preenche form ao montar
-onMounted(() => {
+onMounted(async () => {
   const user = authStore.currentUser
   if (user) {
     form.value.name = user.name
@@ -243,6 +414,9 @@ onMounted(() => {
     form.value.email = user.email
     avatarPreview.value = null
   }
+
+  // Carrega inventário
+  await loadInventory()
 })
 
 </script>

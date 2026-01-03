@@ -137,6 +137,43 @@ export const useAPIStore = defineStore('api', () => {
     return api.get('/coins/balance')
   }
 
+  // -----------------------------
+  // Loja de Itens (Decks/Avatares)
+  // -----------------------------
+  const getShopItems = async () => {
+    if (!token.value) throw new Error('Utilizador não autenticado')
+
+    // Obtém o email do utilizador atual
+    const userResponse = await api.get('/users/me')
+    const userEmail = userResponse.data.email
+
+    // Chama o endpoint com o email como query parameter
+    return api.get('/shop/items', {
+      params: { email: userEmail }
+    })
+  }
+
+  const postBuyItem = async (payload) => {
+    if (!token.value) throw new Error('Utilizador não autenticado')
+
+    // payload: { item_id, type }
+    return api.post('/shop/buy', payload)
+  }
+
+  // -----------------------------
+  // Inventário do Utilizador
+  // -----------------------------
+  const getUserInventory = async () => {
+    if (!token.value) throw new Error('Utilizador não autenticado')
+    return api.get('/users/inventory')
+  }
+
+  const equipItem = async (payload) => {
+    if (!token.value) throw new Error('Utilizador não autenticado')
+    // payload: { item_resource_name, type }
+    return api.post('/users/equip', payload)
+  }
+
   return {
     token,
     api,
@@ -151,5 +188,9 @@ export const useAPIStore = defineStore('api', () => {
     gameQueryParameters,
     postBuyCoins,
     getBalance,
+    getShopItems,
+    postBuyItem,
+    getUserInventory,
+    equipItem,
   }
 })

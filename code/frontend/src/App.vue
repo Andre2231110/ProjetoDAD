@@ -2,7 +2,7 @@
   <Toaster richColors />
 
   <nav class="max-w-[85%] w-full mx-auto p-5 flex justify-between items-center bg-white shadow-md rounded-[2rem] mt-4 border border-slate-100">
-    
+
     <div class="flex items-center gap-4">
       <RouterLink to="/"
         class="text-2xl font-extrabold text-indigo-600 hover:text-indigo-800 transition-colors tracking-tighter italic">
@@ -112,9 +112,27 @@ onMounted(async () => {
   }
 })
 
+// Helper para URLs de assets do inventário
+const getAssetUrl = (resourceName) => {
+  const jpgFiles = [
+    'deck2_preview', 'deck6_preview', 'deck7_preview',
+    'avatar1', 'avatar2', 'avatar3', 'avatar4', 'avatar5',
+    'avatar6', 'avatar7', 'avatar8', 'avatar14', 'avatar16'
+  ]
+  if (jpgFiles.includes(resourceName)) return `/assets/${resourceName}.jpg`
+  return `/assets/${resourceName}.png`
+}
+
 const computedAvatar = computed(() => {
   const avatar = authStore.currentUser?.current_avatar
   if (!avatar) return '/default.jpg'
+
+  // Se for um resource_name do inventário (começa com 'avatar' ou 'default_')
+  if (avatar.startsWith('avatar') || avatar.startsWith('default_')) {
+    return getAssetUrl(avatar)
+  }
+
+  // Se for upload personalizado
   return `${API_URL}/storage/photos_avatars/${avatar}`
 })
 

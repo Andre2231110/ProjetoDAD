@@ -282,29 +282,31 @@ return new class extends Migration
         DB::table('shop_items')->insert([
             // Decks
             ['type' => 'deck', 'name' => 'Deck Classic', 'resource_name' => 'deck1_preview', 'price' => 0],
-            ['type' => 'deck', 'name' => 'Deck DAD', 'resource_name' => 'deck2_preview', 'price' => 50],
+            ['type' => 'deck', 'name' => 'Deck Fire', 'resource_name' => 'deck2_preview', 'price' => 50],
             ['type' => 'deck', 'name' => 'Deck Hello Kitty', 'resource_name' => 'deck3_preview', 'price' => 150],
             ['type' => 'deck', 'name' => 'Deck Tree', 'resource_name' => 'deck4_preview', 'price' => 100],
             ['type' => 'deck', 'name' => 'Damas e Valetes', 'resource_name' => 'deck5_preview', 'price' => 278],
-
-
-
-            //colocar mais decks no futuro
+            ['type' => 'deck', 'name' => 'Deck Space', 'resource_name' => 'deck6_preview', 'price' => 120],
+            ['type' => 'deck', 'name' => 'Deck Ocean', 'resource_name' => 'deck7_preview', 'price' => 90],
+            ['type' => 'deck', 'name' => 'Deck Rainbow', 'resource_name' => 'deck8_preview', 'price' => 200],
 
             // Avatares
-            ['type' => 'avatar', 'name' => 'Avatar Base', 'resource_name' => 'default_avatar', 'price' => 0],
+            ['type' => 'avatar', 'name' => 'Bald Guy', 'resource_name' => 'avatar1', 'price' => 20],
             ['type' => 'avatar', 'name' => 'Winter Girl', 'resource_name' => 'avatar2', 'price' => 30],
             ['type' => 'avatar', 'name' => 'Cool Girl', 'resource_name' => 'avatar3', 'price' => 60],
             ['type' => 'avatar', 'name' => 'Beard Guy', 'resource_name' => 'avatar4', 'price' => 30],
-            ['type' => 'avatar', 'name' => 'Bald Guy', 'resource_name' => 'avatar5', 'price' => 10],
-            ['type' => 'avatar', 'name' => 'Guy', 'resource_name' => 'avatar6', 'price' => 90],
-            ['type' => 'avatar', 'name' => 'Braid Girl', 'resource_name' => 'avatar7', 'price' => 70],
+            ['type' => 'avatar', 'name' => 'Guy', 'resource_name' => 'avatar5', 'price' => 10],
+            ['type' => 'avatar', 'name' => 'Confused Turtle', 'resource_name' => 'avatar6', 'price' => 90],
+            ['type' => 'avatar', 'name' => 'Burger Guy', 'resource_name' => 'avatar7', 'price' => 120],
             ['type' => 'avatar', 'name' => 'Rock Guy', 'resource_name' => 'avatar8', 'price' => 50],
             ['type' => 'avatar', 'name' => 'Duck', 'resource_name' => 'avatar9', 'price' => 100],
             ['type' => 'avatar', 'name' => 'André', 'resource_name' => 'avatar10', 'price' => 200],
             ['type' => 'avatar', 'name' => 'Matilde', 'resource_name' => 'avatar11', 'price' => 200],
             ['type' => 'avatar', 'name' => 'Maria', 'resource_name' => 'avatar12', 'price' => 200],
             ['type' => 'avatar', 'name' => 'Leonardo', 'resource_name' => 'avatar13', 'price' => 200],
+            ['type' => 'avatar', 'name' => 'Ninja', 'resource_name' => 'avatar14', 'price' => 150],
+            ['type' => 'avatar', 'name' => 'Aang Avatar', 'resource_name' => 'avatar15', 'price' => 155],
+            ['type' => 'avatar', 'name' => 'Gyokeres', 'resource_name' => 'avatar16', 'price' => 14],
 
         ]);
     }
