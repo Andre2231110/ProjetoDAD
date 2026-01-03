@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Configuração do Axios para falar com o Laravel
 const api = axios.create({
-    baseURL: `http://${import.meta.env.VITE_API_DOMAIN}/api`, // URL do teu Laravel
+    baseURL: 'http://api-dad-group-25-172.22.21.253.sslip.io/api', // URL do teu Laravel
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',

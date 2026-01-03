@@ -73,7 +73,7 @@
               ]"
             >
               <div class="w-12 h-12 rounded-2xl overflow-hidden border-2" :class="selectedPlayer?.id === player.id ? 'border-indigo-400' : 'border-slate-100'">
-                <img :src="player.photo_avatar_filename ? `http://${import.meta.env.VITE_API_DOMAIN}/storage/` + player.photo_avatar_filename : '/default.jpg'" class="w-full h-full object-cover" />
+                <img :src="player.photo_avatar_filename ? `http://${API_BASE}/storage/` + player.photo_avatar_filename : '/default.jpg'" class="w-full h-full object-cover" />
               </div>
               <div class="flex-1">
                 <p :class="['font-black text-sm uppercase italic', selectedPlayer?.id === player.id ? 'text-white' : 'text-slate-800']">

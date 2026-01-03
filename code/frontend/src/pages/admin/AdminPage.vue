@@ -236,8 +236,8 @@ const selectedType = ref('')
 const selectedBlocked = ref('')
 
 const handleFileChange = (e) => (avatarFile.value = e.target.files[0])
-const API_BASE = `http://${import.meta.env.VITE_API_DOMAIN}/api/admin`
-
+const API_DOMAIN = import.meta.env.VITE_API_DOMAIN
+const API_BASE = `http://${API_DOMAIN}/api/admin`
 
 /* ========= CREATE ADMIN ========= */
 const handleSubmit = async () => {
