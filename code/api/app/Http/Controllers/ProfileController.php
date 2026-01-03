@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
+use App\Models\UserInventory;
 
 class ProfileController extends Controller
 {
@@ -18,8 +19,10 @@ class ProfileController extends Controller
             'name' => 'required|string|max:255',
             'nickname' => ['required', 'string', 'max:50', Rule::unique('users', 'nickname')->ignore($user->id)],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'password' => 'nullable|string|min:3|confirmed', // opcional
-            'avatar' => 'nullable|image|max:2048',           // opcional
+            'password' => 'nullable|string|min:3|confirmed',
+            'avatar' => 'nullable|image|max:2048',
+            'inventory_avatar' => 'nullable|string',
+            'inventory_deck' => 'nullable|string',
         ]);
 
         // Atualiza campos básicos
@@ -32,18 +35,54 @@ class ProfileController extends Controller
             $user->password = Hash::make($request->password);
         }
 
-        // Atualiza avatar se fornecido
+        // PRIORIDADE: Upload personalizado > Avatar do inventário
         if ($request->hasFile('avatar')) {
             // Remove avatar antigo se existir
-            if ($user->current_avatar && Storage::disk('public')->exists($user->current_avatar)) {
-                Storage::disk('public')->delete($user->current_avatar);
+            if ($user->current_avatar && Storage::disk('public')->exists('photos_avatars/' . $user->current_avatar)) {
+                Storage::disk('public')->delete('photos_avatars/' . $user->current_avatar);
             }
 
             $path = $request->file('avatar')->store('photos_avatars', 'public');
-
             $filename = basename($path);
+
             $user->photo_avatar_filename = $filename;
             $user->current_avatar = $filename;
+        }
+        // Só equipa avatar do inventário se NÃO houver upload
+        elseif ($request->filled('inventory_avatar')) {
+            $avatarResource = $request->inventory_avatar;
+
+            // Verifica se o user possui este avatar no inventário (ou é default)
+            $hasAvatar = UserInventory::where('user_id', $user->id)
+                ->where('item_resource_name', $avatarResource)
+                ->exists();
+
+            if ($hasAvatar || $avatarResource === 'default_avatar') {
+                // Remove avatar personalizado antigo se existir
+                if ($user->current_avatar &&
+                    !str_starts_with($user->current_avatar, 'avatar') &&
+                    !str_starts_with($user->current_avatar, 'default_') &&
+                    Storage::disk('public')->exists('photos_avatars/' . $user->current_avatar)) {
+                    Storage::disk('public')->delete('photos_avatars/' . $user->current_avatar);
+                }
+
+                // Simplesmente guarda o resource_name
+                $user->current_avatar = $avatarResource;
+            }
+        }
+
+        // Equipar deck do inventário
+        if ($request->filled('inventory_deck')) {
+            $deckResource = $request->inventory_deck;
+
+            // Verifica se o user possui este deck no inventário (ou é default)
+            $hasDeck = UserInventory::where('user_id', $user->id)
+                ->where('item_resource_name', $deckResource)
+                ->exists();
+
+            if ($hasDeck || $deckResource === 'deck1_preview') {
+                $user->current_deck = $deckResource;
+            }
         }
 
         $user->save();
@@ -53,6 +92,7 @@ class ProfileController extends Controller
             'user' => $user,
         ]);
     }
+
     public function destroy(Request $request)
     {
         $user = $request->user();
@@ -71,11 +111,19 @@ class ProfileController extends Controller
             return response()->json(['message' => 'Senha incorreta.'], 403);
         }
 
-        // Zerar coins ou histórico relacionado
+        // Remove avatar se existir e for upload personalizado
+        if ($user->current_avatar &&
+            !str_starts_with($user->current_avatar, 'avatar') &&
+            !str_starts_with($user->current_avatar, 'default_') &&
+            Storage::disk('public')->exists('photos_avatars/' . $user->current_avatar)) {
+            Storage::disk('public')->delete('photos_avatars/' . $user->current_avatar);
+        }
+
+        // Zerar coins
         if ($user->coins_balance) {
             $user->coins_balance = 0;
             $user->save();
-       }
+        }
 
         // Soft delete
         $user->delete();

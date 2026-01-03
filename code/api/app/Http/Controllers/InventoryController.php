@@ -5,92 +5,102 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\ShopItem;
 use App\Models\UserInventory;
-use App\Models\User; // Necessário para buscar o ID
+use App\Models\User;
 
 class InventoryController extends Controller
 {
-    // GET /api/users/inventory?email=...
+    // GET /api/users/inventory (para Web - Vue)
     public function index(Request $request)
     {
-        $email = $request->query('email');
+        $user = $request->user();
 
-        // 1. Encontrar o User para saber o ID
-        $user = User::where('email', $email)->first();
-
-        // Se o user não existir, retornamos apenas os defaults para não dar erro no Android
         if (!$user) {
-            return response()->json([
-                'decks' => ['deck1_preview'],
-                'avatars' => ['default_avatar']
-            ]);
+            return response()->json(['message' => 'Não autenticado'], 401);
         }
 
-        // 2. Faz um JOIN usando o USER_ID
-         $inventoryItems = UserInventory::join('shop_items', 'user_inventory.item_resource_name', '=', 'shop_items.resource_name')
+        // Busca itens do inventário com JOIN para obter o type
+        $inventoryItems = UserInventory::join('shop_items', 'user_inventory.item_resource_name', '=', 'shop_items.resource_name')
             ->where('user_inventory.user_id', $user->id)
-            ->get(['shop_items.resource_name', 'shop_items.type']);
+            ->select('shop_items.resource_name as item_resource_name', 'shop_items.type')
+            ->get();
 
-        // Separa em duas listas
-        $decks = [];
-        $avatars = [];
+        // Converte para array
+        $items = $inventoryItems->toArray();
 
-         foreach ($inventoryItems as $item) {
-            if ($item->type === 'deck') $decks[] = $item->resource_name;
-            elseif ($item->type === 'avatar') $avatars[] = $item->resource_name;
+        // Verifica se tem os defaults
+        $hasDefaultDeck = collect($items)->contains(fn($item) =>
+            $item['item_resource_name'] === 'deck1_preview'
+        );
+        $hasDefaultAvatar = collect($items)->contains(fn($item) =>
+            $item['item_resource_name'] === 'default_avatar'
+        );
+
+        // Adiciona defaults se necessário
+        if (!$hasDefaultDeck) {
+            array_unshift($items, ['item_resource_name' => 'deck1_preview', 'type' => 'deck']);
+        }
+        if (!$hasDefaultAvatar) {
+            array_unshift($items, ['item_resource_name' => 'default_avatar', 'type' => 'avatar']);
         }
 
-        // Garante os defaults
-        if (!in_array('deck1_preview', $decks)) array_unshift($decks, 'deck1_preview');
-        if (!in_array('default_avatar', $avatars)) array_unshift($avatars, 'default_avatar');
-
-        return response()->json([
-            'decks' => $decks,
-            'avatars' => $avatars
-        ]);
+        return response()->json($items);
     }
 
-    // POST /api/users/equip
+    // POST /api/users/equip (compatível com Web e Android)
     public function equip(Request $request)
     {
-        // Validação dos dados que vêm do Android
-        $request->validate([
-            'email' => 'required|email',
-            'type' => 'required|in:deck,avatar',
-            'resource_name' => 'required|string'
-        ]);
+        $user = $request->user();
 
-        $email = $request->input('email');
-        $type = $request->input('type'); // "deck" ou "avatar"
-        $resourceName = $request->input('resource_name'); // ex: "deck_fire"
-
-        // 1. Encontrar o User
-        $user = User::where('email', $email)->first();
+        // Se não tem auth (Android), usa email
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
+            $request->validate([
+                'email' => 'required|email',
+                'type' => 'required|in:deck,avatar',
+                'resource_name' => 'required|string'
+            ]);
+
+            $user = User::where('email', $request->email)->first();
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
+
+            $resourceName = $request->resource_name;
+            $type = $request->type;
+        } else {
+            // Web (Sanctum)
+            $request->validate([
+                'item_resource_name' => 'required|string',
+                'type' => 'required|in:deck,avatar',
+            ]);
+
+            $resourceName = $request->item_resource_name;
+            $type = $request->type;
         }
 
-        // 2. Verificar se o user TEM o item no inventário
-        // (Permitimos sempre os itens default "deck1_preview" e "default_avatar")
+        // Verificar se o user TEM o item no inventário (ou é default)
         $hasItem = UserInventory::where('user_id', $user->id)
             ->where('item_resource_name', $resourceName)
             ->exists();
 
-        if (!$hasItem && $resourceName !== 'deck1_preview' && $resourceName !== 'default_avatar') {
+        $isDefault = ($resourceName === 'deck1_preview' || $resourceName === 'default_avatar');
+
+        if (!$hasItem && !$isDefault) {
             return response()->json(['error' => 'Não tens este item no inventário'], 403);
         }
 
-        // 3. Atualizar a tabela users (current_deck ou current_avatar)
+        // Atualizar current_deck ou current_avatar
         if ($type === 'deck') {
             $user->current_deck = $resourceName;
         } else {
             $user->current_avatar = $resourceName;
         }
 
-        $user->save(); // O Laravel faz o UPDATE SQL automaticamente aqui
+        $user->save();
 
         return response()->json([
             'message' => 'Equipado com sucesso',
-            'current_item' => $resourceName
+            'current_item' => $resourceName,
+            'user' => $user
         ]);
     }
 }
