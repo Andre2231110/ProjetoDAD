@@ -37,8 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/matches/user', [MatchController::class, 'userMatches']);
     Route::get('/users/me/games', [GameController::class, 'userGames']);
     
-    Route::apiResource('games', GameController::class);
-    Route::apiResource('matches', MatchController::class)->except(['show']); 
+    
 
     // Moedas e Loja
     Route::get('/coins/balance', [CoinController::class, 'getBalance']);
@@ -61,3 +60,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/coins/transactions', [CoinController::class, 'getAllTransactions']);
     });
 });
+
+Route::apiResource('games', GameController::class);
+Route::apiResource('matches', MatchController::class)->except(['show']); 

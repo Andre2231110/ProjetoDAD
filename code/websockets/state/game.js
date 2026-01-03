@@ -268,7 +268,7 @@ export const prepareNextGame = async (matchId) => {
     return match
 }
 
-export const resignGame = (matchId, userId) => {
+export const resignGame = async (matchId, userId) => {
     clearTurnTimer(matchId) // Para timer imediatamente
 
     const match = matches.find(m => m.id == matchId)
@@ -293,12 +293,29 @@ export const resignGame = (matchId, userId) => {
     match.matchWinner = opponentId
     match.resignedBy = userId
 
+    const start = new Date(game.began_at);
+    const end = new Date();
+    const totalTimeSeconds = Math.abs(end - start) / 1000;
+
+    await dbAPI.updateGameResult(game.db_id, {
+        player1_points: game.p1Points,
+        player2_points: game.p2Points,
+        total_time: totalTimeSeconds
+    });
+
     // Ajusta marcas para vitória total se for match
     if (match.isMatch) {
         if (opponentId === match.player1.id) match.p1Marks = 4
         else match.p2Marks = 4
-    }
 
+        
+    }
+    await dbAPI.finalizeMatch(match.db_id, {
+            winnerId: opponentId,
+            loserId: userId,
+            p1Marks: match.p1Marks,
+            p2Marks: match.p2Marks
+        });
     return match
 }
 

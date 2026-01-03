@@ -7,7 +7,7 @@
             class="h-14 bg-emerald-900/80 flex items-center justify-between px-4 text-white shadow-md z-20 shrink-0">
             <div class="flex items-center gap-3">
                 <button class="text-white/80 hover:text-white hover:bg-white/10 px-3 py-1 rounded transition"
-                    @click="leaveGame">
+                    @click="handleExit">
                     <span class="mr-1">⬅</span> Sair
                 </button>
                 <div class="hidden md:flex flex-col leading-tight">
@@ -38,19 +38,7 @@
 
             <!-- Avatar -->
             <div class="flex items-center gap-2">
-                <div v-if="isMultiplayer && !gameStore.isGameComplete"
-                    class="absolute bottom-20 left-1/2 -translate-x-1/2 w-64">
-                    <div class="flex justify-between text-xs text-white font-bold mb-1 shadow-black drop-shadow-md">
-                        <span>Tempo Restante</span>
-                        <span :class="timeLeft < 5 ? 'text-red-500 animate-ping' : 'text-white'">{{ timeLeft }}s</span>
-                    </div>
-                    <div class="h-2 bg-gray-700 rounded-full overflow-hidden border border-white/20">
-                        <div class="h-full transition-all duration-1000 ease-linear"
-                            :class="timeLeft < 5 ? 'bg-red-500' : 'bg-emerald-400'"
-                            :style="{ width: (timeLeft / 20 * 100) + '%' }">
-                        </div>
-                    </div>
-                </div>
+
                 <div class="text-right leading-tight hidden sm:block">
                     <p class="font-bold text-xs">{{ authStore.currentUser?.nickname || 'Eu' }}</p>
                 </div>
@@ -133,6 +121,23 @@
             <!-- ZONA INFERIOR: Minha Mão -->
             <div class="h-1/4 flex items-end justify-center pb-2 md:pb-6 relative px-4">
 
+                
+
+                <!-- 2. Timer (fica entre o aviso de turno e as cartas) -->
+                <div v-if="isMultiplayer && !gameStore.isGameComplete"
+                    class="absolute bottom-40 md:bottom-52 left-1/2 -translate-x-1/2 w-64 z-20">
+                    <div class="flex justify-between text-xs text-white font-bold mb-1 shadow-black drop-shadow-md">
+                        <span>Tempo Restante</span>
+                        <span :class="timeLeft < 5 ? 'text-red-500 animate-ping' : 'text-white'">{{ timeLeft }}s</span>
+                    </div>
+                    <div class="h-2 bg-gray-700 rounded-full overflow-hidden border border-white/20">
+                        <div class="h-full transition-all duration-1000 ease-linear"
+                            :class="timeLeft < 5 ? 'bg-red-500' : 'bg-emerald-400'"
+                            :style="{ width: (timeLeft / 20 * 100) + '%' }">
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Bloqueio visual se não for a minha vez -->
                 <div class="flex -space-x-8 md:-space-x-6 hover:-space-x-2 transition-all duration-300 ease-out h-full items-end"
                     :class="{ 'opacity-60 pointer-events-none grayscale-[0.5]': gameStore.currentTurn !== 'me' }">
@@ -147,7 +152,10 @@
                 <!-- Aviso de turno -->
                 <div v-if="gameStore.currentTurn !== 'me' && !gameStore.isGameComplete"
                     class="absolute bottom-32 bg-black/80 text-white px-4 py-2 rounded-lg text-sm font-bold backdrop-blur animate-pulse border border-white/10">
-                    Oponente a jogar...
+
+                    <!-- Se for multiplayer mostra o nome do oponente, se for local mostra 'Bot' -->
+                    {{ gameStore.isMultiplayer ? ' Oponente a jogar...' : 'Bot a pensar...' }}
+
                 </div>
             </div>
 
@@ -237,7 +245,7 @@
                     </button>
 
                     <!-- Botão: Sair (Aparece sempre, mas destaca-se mais se o jogo acabou de vez) -->
-                    <button @click="quitGame" class="w-full py-3 rounded-xl font-bold transition text-white"
+                    <button @click="voltarLobby" class="w-full py-3 rounded-xl font-bold transition text-white"
                         :class="(gameStore.isMatchMode && !gameStore.matchWinner) ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-700 hover:bg-gray-600'">
                         {{ gameStore.isMatchMode && !gameStore.matchWinner ? 'Sair da Partida (Desistir)' : 'Voltar ao Lobby' }}
                     </button>
@@ -306,25 +314,40 @@ const nextGame = () => {
 };
 
 // Botão "Sair" (Modal Final)
-const quitGame = () => {
-    gameStore.leaveGame(); // Limpa o estado da store
-   if (authStore.isLoggedIn) {
+const executeExit = () => {
+    gameStore.leaveGame(); // A store agora decide se envia o socket ou não
+    
+    // Redireciona
+    if (authStore.isLoggedIn) {
         router.push('/lobby');
     } else {
-        router.push({ name: 'BotGame' }); 
+        router.push({ name: 'HomePage' });
     }
 };
 
-// Botão "Sair" (Canto superior esquerdo)
-const leaveGame = () => {
-    // --- DOUBLE CONFIRMATION ---
-    // O browser abre um popup nativo que obriga o user a clicar "OK" ou "Cancelar"
-    const message = isMultiplayer.value
-        ? "⚠️ ATENÇÃO: Se desistires, o oponente ganha todos os pontos da mesa e das mãos! Tens a certeza?"
-        : "Queres sair do treino? O progresso será perdido.";
+const voltarLobby = () => {
+    gameStore.clearLocalState();
+    if (authStore.isLoggedIn) {
+        router.push('/lobby');
+    } else {
+        router.push({ name: 'HomePage' });
+    }
+}
 
-    if (confirm(message)) {
-        quitGame(); // Chama a função que emite o leave-game
+// Botão "Sair" (Canto superior esquerdo)
+const handleExit = () => {
+    // 1. O jogo ainda está a decorrer? 
+    // (Podes usar o mesmo critério que definimos na store)
+    const isOngoing = gameStore.isMultiplayer && !gameStore.matchWinner;
+
+    if (isOngoing) {
+        // Se está a decorrer, pede confirmação
+        if (confirm("⚠️ Estás a meio de um jogo! Se saíres, vais desistir e perder as moedas. Confirmas?")) {
+            executeExit();
+        }
+    } else {
+        // Se o jogo já acabou, sai direto
+        executeExit();
     }
 };
 
