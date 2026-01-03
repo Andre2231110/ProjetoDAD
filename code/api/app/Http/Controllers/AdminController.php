@@ -172,16 +172,15 @@ class AdminController extends Controller
         try {
             $user = User::findOrFail($id);
 
-            if ($user->type === 'A') {
-                return response()->json([
-                    'error' => 'Não é permitido eliminar administradores.'
-                ], 403);
-            }
-
+            if ($user->id === auth()->user()->id) {
+            return response()->json([
+                'error' => 'Não é permitido eliminar a própria conta.'
+            ], 403);
+        }
             $user->delete();
 
             return response()->json([
-                'message' => 'Usuário eliminado com sucesso'
+                'message' => 'Utilizador eliminado com sucesso'
             ], 200);
         } catch (\Throwable $e) {
             return response()->json([

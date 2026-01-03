@@ -82,9 +82,11 @@ const stats = ref({
   purchases_by_day: [],
 })
 
+const API_BASE = `http://${import.meta.env.VITE_API_DOMAIN}/api/admin`
+
 const fetchStats = async () => {
   try {
-    const res = await fetch('http://127.0.0.1:8000/api/admin/stats', {
+    const res = await fetch(`${API_BASE}/stats`, {
       headers: { Authorization: `Bearer ${apiStore.token}` },
     })
     const data = await res.json()

@@ -238,12 +238,13 @@ const matches = ref([])
 const loadingPlayers = ref(true)
 const loadingHistory = ref(false)
 const expandedMatchId = ref(null)
+const API_BASE = `http://${import.meta.env.VITE_API_DOMAIN}/api/admin`
 
 // 1. Fetch Players
 const fetchPlayers = async () => {
   loadingPlayers.value = true
   try {
-    const res = await axios.get(`http://127.0.0.1:8000/api/admin/users?search=${searchQuery.value}`, {
+    const res = await axios.get(`${API_BASE}/users?search=${searchQuery.value}`, {
       headers: { 'Authorization': `Bearer ${apiStore.token}` }
     })
     players.value = res.data.data || []
@@ -257,7 +258,7 @@ const selectPlayer = async (player) => {
   expandedMatchId.value = null
   loadingHistory.value = true
   try {
-    const res = await axios.get(`http://127.0.0.1:8000/api/admin/users/${player.id}/history`, {
+    const res = await axios.get(`${API_BASE}/users/${player.id}/history`, {
       headers: { 'Authorization': `Bearer ${apiStore.token}` }
     })
     matches.value = res.data.data || []

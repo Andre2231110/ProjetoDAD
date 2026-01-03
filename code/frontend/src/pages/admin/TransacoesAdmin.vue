@@ -109,6 +109,7 @@ import { ref, onMounted } from 'vue'
 import { useAPIStore } from '@/stores/api'
 
 const apiStore = useAPIStore()
+const API_BASE = `http://${import.meta.env.VITE_API_DOMAIN}/api/admin`
 
 const transactions = ref([])
 const currentPage = ref(1)
@@ -117,7 +118,7 @@ const lastPage = ref(1)
 const fetchTransactions = async () => {
   try {
     const res = await fetch(
-      `http://127.0.0.1:8000/api/admin/coins/transactions?page=${currentPage.value}`,
+      `${API_BASE}/coins/transactions?page=${currentPage.value}`,
       {
         headers: {
           Authorization: `Bearer ${apiStore.token}`
