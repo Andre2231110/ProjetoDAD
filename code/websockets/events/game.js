@@ -35,13 +35,25 @@ export const handleGameEvents = (io, socket) => {
         socket.emit("games-list", getGames())
     })
 
-    const handleTimeout = (gameId, loserId) => {
-        // Usa a mesma lógica de desistência
-        const game = resignGame(gameId, loserId)
-        if (game) {
-            // Adiciona uma flag para o frontend saber que foi por tempo
-            game.timeout = true
-            io.to(`game-${gameId}`).emit("game-update", game)
+    const handleTimeout = async (matchId, loserId) => {
+
+        console.log("Match id" + matchId)
+        console.log("Loser id" + loserId)
+
+        try {
+            // Temos de usar AWAIT, senão o 'match' é uma Promise e não os dados
+            const match = await resignGame(matchId, loserId)
+            
+            if (match) {
+                // Adiciona a flag
+                match.timeout = true
+                
+                // Emite para a sala correta (prefixo 'game-' + ID da match)
+                io.to(`game-${matchId}`).emit("game-update", match)
+                console.log(`[Timeout] Match ${matchId} finalizada por tempo.`)
+            }
+        } catch (error) {
+            console.error("Erro ao processar timeout:", error)
         }
     }
 
@@ -70,6 +82,11 @@ export const handleGameEvents = (io, socket) => {
                 // 3. Atualizar o Lobby para os outros users (remover o jogo da lista)
                 io.emit("games-list", getGames())
 
+                if (match.currentGame && match.currentGame.status === 'Playing') {
+                    console.log(`[Timer] A iniciar timer inicial para ${match.currentGame.turn}`);
+                    startTurnTimer(match.id, () => handleTimeout(match.id, match.currentGame.turn));
+                }
+
                 console.log(`[Bisca] Jogo #${match.id} (BD: ${match.db_id}) começou entre ${match.player1.nickname} e ${match.player2.nickname}`)
             } else {
                 socket.emit("error", "Não foi possível entrar no jogo. Verifique o seu saldo.")
@@ -95,7 +112,7 @@ export const handleGameEvents = (io, socket) => {
     })
 
     // --- 5. SAIR DO JOGO (Leave) ---
-    socket.on("leave-game", (payload) => {
+    socket.on("leave-game", async (payload) => {
         const user = getUser(socket.id)
         if (!user) return
 
@@ -103,7 +120,7 @@ export const handleGameEvents = (io, socket) => {
 
         if (gameId) {
             // Processa a desistência (atribui pontos e fecha jogo)
-            const game = resignGame(gameId, user.id)
+            const game = await resignGame(gameId, user.id)
 
             if (game) {
                 clearTurnTimer(gameId)
@@ -123,9 +140,6 @@ export const handleGameEvents = (io, socket) => {
         const match = await playCard(payload.gameId, user.id, payload.card);
 
         if (match) {
-            // 3. O ID para a sala deve ser o match.id (o ID que os jogadores usaram para entrar na sala)
-            // Se no join-room usaste "game-123", aqui tem de ser igual
-            io.to(`game-${match.id}`).emit("game-update", match);
 
             if (match.currentGame && match.currentGame.status === 'Playing') {
                 // Timer baseado no ID do match e no turno atual
@@ -133,6 +147,11 @@ export const handleGameEvents = (io, socket) => {
             } else {
                 clearTurnTimer(match.id);
             }
+            // 3. O ID para a sala deve ser o match.id (o ID que os jogadores usaram para entrar na sala)
+            // Se no join-room usaste "game-123", aqui tem de ser igual
+            io.to(`game-${match.id}`).emit("game-update", match);
+
+            
         } else {
             console.log("Jogada inválida ou Match não encontrado");
         }
@@ -151,5 +170,10 @@ export const handleGameEvents = (io, socket) => {
             // (Esconde o modal, mostra as novas cartas)
             io.to(`game-${gameId}`).emit("game-started", game)
         }
+
+        if (match.currentGame && match.currentGame.status === 'Playing') {
+                console.log(`[Timer] A iniciar timer para novo jogo da match`);
+                startTurnTimer(match.id, () => handleTimeout(match.id, match.currentGame.turn));
+            }
     })
 }

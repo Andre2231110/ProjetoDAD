@@ -221,11 +221,7 @@ export const useGameStore = defineStore('game', () => {
   }
 
   // Sair / Desistir
-  const leaveGame = () => {
-    if (isMultiplayer.value && multiplayerGameId.value) {
-        socketStore.emitLeaveGame(multiplayerGameId.value)
-    }
-    // Limpeza Local
+  const clearLocalState = () => {
     deck.value = []
     myHand.value = []
     botHand.value = []
@@ -235,6 +231,15 @@ export const useGameStore = defineStore('game', () => {
     opponentMarks.value = 0
     isMultiplayer.value = false
     multiplayerGameId.value = null
+    matchWinner.value = null 
+    isGameComplete.value = null 
+}
+
+  const leaveGame = () => {
+    if (isMultiplayer.value && multiplayerGameId.value) {
+        socketStore.emitLeaveGame(multiplayerGameId.value)
+    }
+    clearLocalState();
  }
 
   // ------------------------------------------------------------------------
@@ -475,7 +480,7 @@ export const useGameStore = defineStore('game', () => {
     // Actions
     startGameLocal, nextGameInMatch, leaveGame, playCard, 
     createGame, cancelGame, joinGame, setGames, 
-    startMultiplayerGame, updateMultiplayerState,
+    startMultiplayerGame, updateMultiplayerState,clearLocalState,
     
     // Getters
     myGames, availableGames
