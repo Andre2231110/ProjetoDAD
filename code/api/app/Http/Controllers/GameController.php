@@ -169,61 +169,7 @@ public function store(Request $request)
                 ]);
                 Log::info("Jogo $game->id atualizado para Ended.");
 
-                // 2. Lógica de Recompensa
-                if ($game->match_id === null) {
-            
-            if ($game->match_id === null) {
-            
-            // 2. Lógica de Recompensa para Vitória
-            if ($winnerId && $winnerId === $game->player1_user_id) {
-                // Valores da Pág 3: 3 (moca), 4 (capote), 6 (bandeira)
-                $reward = 3; 
-                if ($p1Score == 120) $reward = 6;
-                elseif ($p1Score >= 91) $reward = 4;
-
-                $user = User::find($winnerId);
-                if ($user && $user->email !== 'bot@mail.pt') {
-                    $user->increment('coins_balance', $reward);
-                    DB::table('coin_transactions')->insert([
-                        'user_id' => $user->id,
-                        'game_id' => $game->id,
-                        'coin_transaction_type_id' => 5, // 'Game payout'
-                        'coins' => $reward,
-                        'transaction_datetime' => now(),
-                    ]);
-                }
-            }
-            
-            // 3. Empate em jogo standalone: Devolver 1 moeda a cada (Pág 3)
-            if ($isDraw) {
-                // Devolve ao Player 1
-                $u1 = User::find($game->player1_user_id);
-                if ($u1) {
-                    $u1->increment('coins_balance', 1);
-                    DB::table('coin_transactions')->insert([
-                        'user_id' => $u1->id,
-                        'game_id' => $game->id,
-                        'coin_transaction_type_id' => 1, // 'Refund'
-                        'coins' => 1,
-                        'transaction_datetime' => now(),
-                    ]);
-                }
-                // Devolve ao Player 2
-                $u2 = User::find($game->player2_user_id);
-                if ($u2 && $u2->email !== 'bot@mail.pt') {
-                    $u2->increment('coins_balance', 1);
-                    DB::table('coin_transactions')->insert([
-                        'user_id' => $u2->id,
-                        'game_id' => $game->id,
-                        'coin_transaction_type_id' => 1,
-                        'coins' => 1,
-                        'transaction_datetime' => now(),
-                    ]);
-                }
-            }
-        }
-            }
-        });
+            });
 
             return response()->json(['message' => 'Resultado guardado com sucesso']);
 

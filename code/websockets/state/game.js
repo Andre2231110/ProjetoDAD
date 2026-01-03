@@ -222,10 +222,10 @@ export const playCard = async (matchId, userId, card) => {
             const totalTimeSeconds = Math.abs(end - start) / 1000;
 
             await dbAPI.updateGameResult(game.db_id, {
-                    player1_points: game.p1Points, 
-                    player2_points: game.p2Points, 
-                    total_time: totalTimeSeconds
-                });
+                player1_points: game.p1Points,
+                player2_points: game.p2Points,
+                total_time: totalTimeSeconds
+            });
 
             if (match.status === 'Ended') {
 
@@ -235,17 +235,20 @@ export const playCard = async (matchId, userId, card) => {
                 const loserId = winnerId === match.player1.id ? match.player2.id :
                     (winnerId === match.player2.id ? match.player1.id : null);
 
-                
-                
+
+
 
                 // Chamar a API com os novos campos
-                
+
                 const matchLoserId = match.matchWinner === match.player1.id ? match.player2.id : match.player1.id;
                 await dbAPI.finalizeMatch(match.db_id, {
-                    winnerId: match.matchWinner,
-                    loserId: matchLoserId,
+                    winnerId: match.matchWinner, 
+                    loserId: userId,            
+                    is_match: match.isMatch,     
                     p1Marks: match.p1Marks,
-                    p2Marks: match.p2Marks
+                    p2Marks: match.p2Marks,
+                    player1_points: game.p1Points,
+                    player2_points: game.p2Points
                 });
             }
 
@@ -262,7 +265,7 @@ export const prepareNextGame = async (matchId) => {
     match.currentGame = createNewGameObj(match.type, match.player1.id, match.player2.id)
 
     // API: Criar o novo round na BD
-    const dbGame = await dbAPI.storeGame(match.currentGame ,match.db_id)
+    const dbGame = await dbAPI.storeGame(match.currentGame, match.db_id)
     match.currentGame.db_id = dbGame.id
 
     return match
@@ -308,14 +311,17 @@ export const resignGame = async (matchId, userId) => {
         if (opponentId === match.player1.id) match.p1Marks = 4
         else match.p2Marks = 4
 
-        
+
     }
     await dbAPI.finalizeMatch(match.db_id, {
-            winnerId: opponentId,
-            loserId: userId,
-            p1Marks: match.p1Marks,
-            p2Marks: match.p2Marks
-        });
+        winnerId: match.matchWinner, // Pode ser null se for empate
+        loserId: userId,             // (Opcional)
+        is_match: match.isMatch,     // <--- IMPORTANTE: Enviar true/false
+        p1Marks: match.p1Marks,
+        p2Marks: match.p2Marks,
+        player1_points: game.p1Points,
+        player2_points: game.p2Points
+    });
     return match
 }
 
