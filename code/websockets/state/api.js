@@ -13,7 +13,7 @@ const api = axios.create({
 });
 
 export const dbAPI = {
-    
+
     async storeMatch(matchData) {
         try {
             const response = await api.post('/matches', {
@@ -21,7 +21,7 @@ export const dbAPI = {
                 player1_user_id: matchData.player1.id,
                 player2_user_id: matchData.player2.id,
                 stake: matchData.stake,
-                is_match: matchData.isMatch ? 1 : 0, 
+                is_match: matchData.isMatch ? 1 : 0,
                 status: 'Playing',
                 began_at: new Date().toISOString().slice(0, 19).replace('T', ' ')
             });
@@ -57,7 +57,7 @@ export const dbAPI = {
             await api.patch(`/games/${gameId}`, {
                 player1_points: results.player1_points, // Garante que nunca vai null
                 player2_points: results.player2_points, // Garante que nunca vai null
-                total_time: Math.round(results.total_time), 
+                total_time: Math.round(results.total_time),
             });
         } catch (error) {
             console.error('Erro ao atualizar Game:', error.message);
@@ -71,11 +71,14 @@ export const dbAPI = {
                 winner_user_id: finalResults.winnerId,
                 player1_marks: finalResults.p1Marks,
                 player2_marks: finalResults.p2Marks,
-                status: 'Ended',
-                ended_at: new Date().toISOString().slice(0, 19).replace('T', ' ')
+                // Novos campos para a lógica unificada:
+                is_match: finalResults.is_match,
+                player1_points: finalResults.player1_points,
+                player2_points: finalResults.player2_points,
+                status: 'Ended'
             });
         } catch (error) {
-            console.error('Erro ao finalizar Match no Laravel:', error.message);
+            console.error('Erro ao finalizar Match:', error.message);
         }
     }
 };
